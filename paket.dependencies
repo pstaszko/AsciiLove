@@ -1,0 +1,25 @@
+source https://nuget.pkg.github.com/WesternCapital/index.json username: "%WCRI_GITHUB_PACKAGES_USER%" password: "%WCRI_GITHUB_PACKAGES_PASSWORD%"
+source https://nuget.pkg.github.com/fischorg/index.json username: "%PUBLIC_GITHUB_PACKAGES_USER%" password: "%PUBLIC_GITHUB_PACKAGES_PASSWORD%"
+source https://nuget.pkg.github.com/StarlyCode/index.json username: "%STARLYCODE_GITHUB_PACKAGES_USER%" password: "%STARLYCODE_GITHUB_PACKAGES_PASSWORD%"
+source https://api.nuget.org/v3/index.json
+storage: none
+
+### AsciiLove
+//Op: NugetCleanup
+nuget fischorg.FMQTT
+nuget FsUnit.XUnit
+nuget Microsoft.Extensions.Configuration
+nuget Microsoft.Extensions.Configuration.Binder
+nuget Microsoft.Extensions.Configuration.Json
+nuget Microsoft.NET.Test.Sdk
+nuget Newtonsoft.Json
+nuget Serilog.Sinks.Map
+nuget Serilog.Sinks.RollingFile
+nuget SixLabors.ImageSharp
+nuget Spectre.Console.ImageSharp
+nuget Spectre.Console.Json
+nuget starlycode.directoryattributemanager.core
+nuget WinMergeEquals
+nuget xunit.runner.visualstudio
+//Op: End
+nuget Serilog.Extensions.Logging

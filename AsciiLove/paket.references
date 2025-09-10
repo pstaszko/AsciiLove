@@ -1,0 +1,16 @@
+//Op: Sort
+fischorg.FMQTT
+Microsoft.Extensions.Configuration
+Microsoft.Extensions.Configuration.Binder
+Microsoft.Extensions.Configuration.Json
+Newtonsoft.Json
+Serilog
+Serilog.Extensions.Logging
+Serilog.Sinks.File
+Serilog.Sinks.Map
+Serilog.Sinks.RollingFile
+SixLabors.ImageSharp
+Spectre.Console.ImageSharp
+Spectre.Console.Json
+starlycode.directoryattributemanager.core
+//Op: End
