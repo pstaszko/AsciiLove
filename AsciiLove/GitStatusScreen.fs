@@ -60,7 +60,7 @@ module GitStatusScreen =
         | ActOnAllReports action ->
             let setVis newVisibility =
                 gm.GitStatusMeta
-                |> Map.map 
+                |> Map.map
                     ^ fun _ meta ->
                         { meta with Visibility = if meta.Visibility <> Hidden then newVisibility else meta.Visibility }
                 |> gm.SetGitStatusMeta
@@ -253,5 +253,6 @@ module GitStatusScreen =
             Hotkey.Create2(ConsoleKey.Spacebar   , "Expand/Collapse" , ToggleExpand                 |> ActOnSelectedReport                  |> Msg.GitStatusMsg)
             Hotkey.Create2(ConsoleKey.Add        , "Expand All"      , ExpandAll                    |> ActOnAllReports                      |> Msg.GitStatusMsg)
             Hotkey.Create2(ConsoleKey.Subtract   , "Collapse All"    , CollapseAll                  |> ActOnAllReports                      |> Msg.GitStatusMsg)
+            Hotkey.Create2(ConsoleKey.UpArrow    , "Push"            , Push                         |> ActOnSelectedReport                  |> Msg.GitStatusMsg) |> setMods "Alt"
             //Op: End
         ]

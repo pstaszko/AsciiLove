@@ -227,7 +227,7 @@ module Domain =
             DecrementStep: int
             GitDetailLevel: int
         }
-    
+
     [<RequireQualifiedAccess>]
     type CursorSide =
         | Right
@@ -250,9 +250,9 @@ module Domain =
             <!> GitRepoStatusReportMeta.Default
 
         //member this.ReplaceAReport (newReport: GitRepoStatusReport) =
-        //    let n = 
+        //    let n =
         //        this.GitStatuses
-        //        |+| fun existingReport -> 
+        //        |+| fun existingReport ->
         //            if existingReport.RepoPath = newReport.RepoPath then
         //                newReport
         //            else
@@ -281,13 +281,13 @@ module Domain =
                                 AllArt = []
                         }
             }
-    
+
     type MUM =
         {
             Name: string
             Fn: Model -> obj
         }
-    
+
 [<AutoOpen>]
 module Messages =
     open Domain
@@ -329,6 +329,7 @@ module Messages =
     type GitRepoStatusReportAction =
         | RememberDir
         | ToggleExpand
+        | Push
 
     type AllReportsAction =
         | ExpandAll
@@ -354,7 +355,7 @@ module Messages =
 
 
     type Topic = string
-    
+
     type Message = string
 
     type Msg =
@@ -371,12 +372,16 @@ module Messages =
             Key: string
             Description: string
             Msg: Msg
+            Mods: string
         }
         static member Create(key: string, description: string, msg: Msg) =
-            { Key = key; Description = description; Msg = msg }
+            { Key = key; Description = description; Msg = msg; Mods = "" }
 
         static member Create2(key: System.ConsoleKey, description: string, msg: Msg) =
-            { Key = key |> string; Description = description; Msg = msg }
+            { Key = key |> string; Description = description; Msg = msg; Mods = "" }
+
+    let setMods (mods: string) (hotkey: Hotkey) =
+        { hotkey with Mods = mods }
 
     let go (screen: Screen) = GlobalMsg (OpenScreen screen)
 

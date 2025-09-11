@@ -81,11 +81,11 @@ module Main =
                 Hotkey.Create("h"  , "Open Help"                , go Help)
                 Hotkey.Create("t"  , "[Debug] Toggle Model View", GlobalMsg ToggleShowModel)
                 Hotkey.Create("q"  , "Quit Application"         , GlobalMsg Quit)
-                Hotkey.Create("Esc", "Open Main"                , go Main)
+                //Hotkey.Create("Esc", "Open Main"                , go Main)
                 //Op: End
             ]
 
-        let isKeyAMatch (stringVersion: string) (consoleKey: ConsoleKeyInfo) =
+        let isKeyAMatch (stringVersion: string) (mods: string) (consoleKey: ConsoleKeyInfo) =
             if consoleKey.KeyChar = char 27 && stringVersion = "Esc" then true
             else
                 stringVersion.[0] = consoleKey.KeyChar || stringVersion = consoleKey.Key.ToString()
@@ -106,7 +106,7 @@ module Main =
                             | "Esc" -> char 27
                             | x -> x.[0]
                         //fixedHotkeyAsChar = key.KeyChar
-                        isKeyAMatch hotkey.Key key
+                        isKeyAMatch hotkey.Key hotkey.Mods key
             |> Option.iter (fun hotkey -> post (hotkey.Msg))
 
         let view (model: Model) : unit =
