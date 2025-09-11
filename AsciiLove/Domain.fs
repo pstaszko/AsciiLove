@@ -382,12 +382,11 @@ module Messages =
 
 [<AutoOpen>]
 module MessageQueue =
-    open Domain
     open Messages
     open System.Collections.Concurrent
 
     let messageQueue = ConcurrentQueue<Msg>()
 
     let post (msg: Msg) : unit =
-        log msg
+        //Logging.logDebug msg
         messageQueue.Enqueue msg

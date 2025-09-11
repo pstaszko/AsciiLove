@@ -3,7 +3,6 @@ namespace AsciiLove.Screens
 open System
 
 open AsciiLove.Domain
-open Atomic.Operators
 
 open AsciiLove
 //Op: End

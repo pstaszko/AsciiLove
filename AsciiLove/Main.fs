@@ -1,6 +1,5 @@
 namespace AsciiLove
 //Op: Auto
-open Microsoft.Extensions.Configuration
 open System
 open System.Threading
 
@@ -10,38 +9,9 @@ open ArtDomain
 open Domain
 
 open MQTTnet.Client
-open Serilog.Configuration
 open Spectre.Console
 open Spectre.Console.Json
 //Op: End
-module Config =
-
-    type LoggingConfig =
-        {
-            LogFilePath: string
-        }
-
-    let getConfig () =
-        let config =
-            ConfigurationBuilder()
-                .AddJsonFile("config.json")
-                .Build()
-        {|
-            config = config
-            LoggingConfig = {LogFilePath = config.["LogFilePath"]}
-        |}
-
-[<AutoOpen>]
-module Logging =
-    open Serilog
-    let getLogger (lc: Config.LoggingConfig) =
-
-        LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.RollingFile(Serilog.Formatting.Display.MessageTemplateTextFormatter("{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}", null), lc.LogFilePath)
-            //.WriteTo.Console(Events.LogEventLevel.Information)
-            .CreateLogger()
-
 module Main =
     let init =
         {
@@ -262,13 +232,19 @@ module Main =
     [<EntryPoint>]
     let main args =
         Serilog.Debugging.SelfLog.Enable(fun msg -> Console.WriteLine(msg))
-        let cfg = Config.getConfig()
-        use log =
-            let lc = cfg.LoggingConfig
-            getLogger lc
-        log.Information "hi"
-        let microsoftLogger = new SerilogLoggerFactory(serilogLogger)
-            //.CreateLogger<IMyService>(); // creates an instance of ILogger<IMyService>
+        let configLogger() =
+            let cfg = Config.getConfig()
+            let log =
+                let lc = cfg.LoggingConfig
+                getLogger lc
+            SetLogger log
+        configLogger()
+        Logging.logDebug "debug"
+        //Logging.logInfo "info"
+        //Logging.logWarn "warn"
+        //Logging.logError (Exception("test exception")) "error"
+        //Logging.logVerbose "verbose"
+
         ConsoleUtils.setSize 12
         let m = FMQTT.LocalBroker.ConnectToLocal()
 

@@ -5,7 +5,6 @@ open System.Threading.Tasks
 
 open AsciiLove.Domain
 open AsciiLove.Messages
-open Atomic.Operators
 
 open AsciiLove
 //Op: End
