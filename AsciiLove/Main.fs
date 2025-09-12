@@ -30,8 +30,8 @@ module Main =
                     DirtyScreen = false 
                     LastHotkeyWrap_Global = None
                     LastHotkeyWrap_Specific = None
+                    ShowModel = false
                 }
-            ShowModel = false
             ArtSettings = ArtDomain.ArtSettings.Empty
             GitInfo = {
                 GitStatuses = []
@@ -66,8 +66,11 @@ module Main =
                 | ClearScreen     -> model.SetDirty true
                 | Quit            -> model
                 | SetSize size    -> ConsoleUtils.setSize size; model
-                | ToggleShowModel -> { model with ShowModel = not model.ShowModel } |> fun x -> x.SetDirty true
                 //Op: End
+                | ToggleShowModel -> 
+                    model
+                    |> fun x -> x.SetShowModel (not model.Window.ShowModel)
+                    |> fun x -> x.SetDirty true
                 | OpenScreen screen ->
                     if screen = model.Screen then
                         model
@@ -116,7 +119,7 @@ module Main =
             |> Option.iter (fun hotkey -> post (hotkey.Msg))
 
         let view (model: Model) : Model =
-            if model.ShowModel then CLEAR "Reset screen every tick if the model is being shown"
+            if model.Window.ShowModel then CLEAR "Reset screen every tick if the model is being shown"
             match model.Screen with
             | Main -> Screens.MainScreen.view model
             | GitStatus -> Screens.GitStatusScreen.view model
@@ -189,7 +192,7 @@ module Main =
                     |> fun x -> x.SetDirty (model.Window.DirtyScreen || hotkeyWrapBehaviorChanged)
                 else model
 
-            if model.ShowModel then
+            if model.Window.ShowModel then
                 Console_WriteLine ""
 
                 model
