@@ -25,9 +25,9 @@ module Main =
                     GitDetailLevel = 0
                 }
             Screen = Main
-            Window = 
+            Window =
                 {
-                    DirtyScreen = false 
+                    DirtyScreen = false
                     LastHotkeyWrap_Global = None
                     LastHotkeyWrap_Specific = None
                     ShowModel = false
@@ -63,11 +63,11 @@ module Main =
                 match msg with
                 //Op: Auto
                 //Op: Sort
-                | ClearScreen     -> model.SetDirty true
-                | Quit            -> model
-                | SetSize size    -> ConsoleUtils.setSize size; model
+                | ClearScreen  -> model.SetDirty true
+                | Quit         -> model
+                | SetSize size -> ConsoleUtils.setSize size; model
                 //Op: End
-                | ToggleShowModel -> 
+                | ToggleShowModel ->
                     model
                     |> fun x -> x.SetShowModel (not model.Window.ShowModel)
                     |> fun x -> x.SetDirty true
@@ -183,7 +183,7 @@ module Main =
                         model.Window.LastHotkeyWrap_Specific <> currentWrapBehavior_Specific
 
                     { model with
-                        Window = 
+                        Window =
                             { model.Window with
                                 LastHotkeyWrap_Global = currentWrapBehavior_Global
                                 LastHotkeyWrap_Specific = currentWrapBehavior_Specific
@@ -227,7 +227,7 @@ module Main =
 
             newModel, loopBehavior
 
-        let loop srlz (mums: MUM list) raiseMessage forceView (prevModel: Model) =
+        let loop serialize (modelUpdateMessageCallbacks: ModelUpdateMessageCallback list) raiseMessage forceView (prevModel: Model) =
             let rec go forceView (prevModel: Model) =
                 let keyOpt = getKeyOpt()
 
@@ -242,10 +242,12 @@ module Main =
                     else newModel
 
                 if newModel <> prevModel then
-                    mums
+                    modelUpdateMessageCallbacks
                     |% fun mum ->
-                        mum.Fn newModel
-                        |> fun x -> srlz x |> raiseMessage mum.Name
+                        mum.Callback newModel
+                        |> fun x -> 
+                            serialize x
+                            |> raiseMessage mum.Name
 
                 let newModel =
                     if newModel <> prevModel || forceView || wasDirty then
@@ -265,26 +267,24 @@ module Main =
         //x.ApplicationMessage.Payload
         |> System.Text.Encoding.UTF8.GetString
 
+    let configLogger() =
+        let cfg = Config.getConfig()
+        let log =
+            let lc = cfg.LoggingConfig
+            getLogger lc
+        SetLogger log
+
     [<EntryPoint>]
     let main args =
-        Serilog.Debugging.SelfLog.Enable(fun msg -> Console.WriteLine(msg))
-        let configLogger() =
-            let cfg = Config.getConfig()
-            let log =
-                let lc = cfg.LoggingConfig
-                getLogger lc
-            SetLogger log
         configLogger()
-        Logging.logDebug "debug"
-        //Logging.logInfo "info"
-        //Logging.logWarn "warn"
-        //Logging.logError (Exception("test exception")) "error"
-        //Logging.logVerbose "verbose"
+        
+        Serilog.Debugging.SelfLog.Enable(fun msg -> Console.WriteLine(msg); logDebug msg)
 
         ConsoleUtils.setSize 12
-        let m = FMQTT.LocalBroker.ConnectToLocal()
 
-        m.SubscribeToTopicBasic "SelectedGitStatusPath" ^ fun x -> TrySetSelectedGitRepoStatus x |> GitStatusMsg |> post
+        let mqtt = FMQTT.LocalBroker.ConnectToLocal()
+
+        mqtt.SubscribeToTopicBasic "SelectedGitStatusPath" ^ fun x -> TrySetSelectedGitRepoStatus x |> GitStatusMsg |> post
 
         [
             GalleryMsg (SetDisplayMode ArtDisplayMode.Text)
@@ -301,22 +301,23 @@ module Main =
             ]
 
         recurringMessages
-        |> List.iter (fun (interval, msg) ->
+        |% fun (interval, msg) ->
             let timer = new System.Timers.Timer(interval)
             timer.Elapsed.Add(fun _ -> post msg)
             timer.Start()
-        )
 
         let modelUpdateMessages =
-            let go name fn = { Name = name; Fn = fn }
+            let go name fn = { Name = name; Callback = fn }
             [
                 go "SelectedGitStatusPath" ^ fun x -> x.GitInfo.SelectedGitStatus </> _.Path <!> ""
             ]
-
+            
         args
-        |> Seq.where ^ fun x -> x.Length > 0
+        |? fun x -> x.Length > 0 //remove empty args
         |> Seq.toList
         |> Screens.GitStatusScreen.startMonitor
-        let srlz (o: obj) = Newtonsoft.Json.JsonConvert.SerializeObject(o, Newtonsoft.Json.Formatting.Indented)
-        Program.loop srlz modelUpdateMessages m.PublishMessage true init
+
+        let serialize (o: obj) = Newtonsoft.Json.JsonConvert.SerializeObject(o, Newtonsoft.Json.Formatting.Indented)
+        
+        Program.loop serialize modelUpdateMessages mqtt.PublishMessage true init
         0

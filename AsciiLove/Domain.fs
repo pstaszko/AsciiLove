@@ -297,10 +297,10 @@ module Domain =
                         }
             }
 
-    type MUM =
+    type ModelUpdateMessageCallback =
         {
             Name: string
-            Fn: Model -> obj
+            Callback: Model -> obj
         }
 
 [<AutoOpen>]
