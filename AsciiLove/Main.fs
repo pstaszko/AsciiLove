@@ -25,7 +25,12 @@ module Main =
                     GitDetailLevel = 0
                 }
             Screen = Main
-            Window = { DirtyScreen = false }
+            Window = 
+                {
+                    DirtyScreen = false 
+                    LastHotkeyWrap_Global = None
+                    LastHotkeyWrap_Specific = None
+                }
             ShowModel = false
             ArtSettings = ArtDomain.ArtSettings.Empty
             GitInfo = {
@@ -35,8 +40,6 @@ module Main =
                 Side = CursorSide.Left
                 SelectedFile = None
             }
-            LastHotkeyWrap_Global = None
-            LastHotkeyWrap_Specific = None
         }
     [<RequireQualifiedAccess>]
     type LoopBehavior =
@@ -173,12 +176,15 @@ module Main =
                         |> printHotkeys
 
                     let hotkeyWrapBehaviorChanged =
-                        model.LastHotkeyWrap_Global <> currentWrapBehavior_Global ||
-                        model.LastHotkeyWrap_Specific <> currentWrapBehavior_Specific
+                        model.Window.LastHotkeyWrap_Global <> currentWrapBehavior_Global ||
+                        model.Window.LastHotkeyWrap_Specific <> currentWrapBehavior_Specific
 
                     { model with
-                        LastHotkeyWrap_Global = currentWrapBehavior_Global
-                        LastHotkeyWrap_Specific = currentWrapBehavior_Specific
+                        Window = 
+                            { model.Window with
+                                LastHotkeyWrap_Global = currentWrapBehavior_Global
+                                LastHotkeyWrap_Specific = currentWrapBehavior_Specific
+                            }
                     }
                     |> fun x -> x.SetDirty (model.Window.DirtyScreen || hotkeyWrapBehaviorChanged)
                 else model

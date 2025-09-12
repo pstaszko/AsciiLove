@@ -266,6 +266,8 @@ module Domain =
     type ScreenHouseKeeping =
         {
             DirtyScreen: bool
+            LastHotkeyWrap_Specific: HotkeyWrapBehavior option
+            LastHotkeyWrap_Global: HotkeyWrapBehavior option
         }
 
     type Model =
@@ -279,8 +281,6 @@ module Domain =
             Window: ScreenHouseKeeping
             ShowModel: bool
             GitInfo: GitInfo
-            LastHotkeyWrap_Specific: HotkeyWrapBehavior option
-            LastHotkeyWrap_Global: HotkeyWrapBehavior option
         }
         member this.SetDirty dirty = { this with Window = { this.Window with DirtyScreen = dirty } }
         member this.SetGitInfo x = { this with GitInfo = x }
