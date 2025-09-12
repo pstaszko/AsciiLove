@@ -276,12 +276,13 @@ module Domain =
             Settings: SavedSettings
             ArtSettings: ArtSettings
             Screen: Screen
-            DirtyScreen: bool
+            Window: ScreenHouseKeeping
             ShowModel: bool
             GitInfo: GitInfo
             LastHotkeyWrap_Specific: HotkeyWrapBehavior option
             LastHotkeyWrap_Global: HotkeyWrapBehavior option
         }
+        member this.SetDirty dirty = { this with Window = { this.Window with DirtyScreen = dirty } }
         member this.SetGitInfo x = { this with GitInfo = x }
         static member MiniDump (model: Model) =
             {

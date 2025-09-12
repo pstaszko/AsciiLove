@@ -25,7 +25,7 @@ module Main =
                     GitDetailLevel = 0
                 }
             Screen = Main
-            DirtyScreen = false
+            Window = { DirtyScreen = false }
             ShowModel = false
             ArtSettings = ArtDomain.ArtSettings.Empty
             GitInfo = {
@@ -60,10 +60,10 @@ module Main =
                 match msg with
                 //Op: Auto
                 //Op: Sort
-                | ClearScreen     -> { model with DirtyScreen = true }
+                | ClearScreen     -> model.SetDirty true
                 | Quit            -> model
                 | SetSize size    -> ConsoleUtils.setSize size; model
-                | ToggleShowModel -> { model with ShowModel = not model.ShowModel; DirtyScreen = true }
+                | ToggleShowModel -> { model with ShowModel = not model.ShowModel } |> fun x -> x.SetDirty true
                 //Op: End
                 | OpenScreen screen ->
                     if screen = model.Screen then
@@ -71,7 +71,8 @@ module Main =
                     else
                         SetSize 12 |> GlobalMsg |> post
 
-                        { model with Screen = screen; DirtyScreen = true }
+                        { model with Screen = screen }
+                        |> fun x -> x.SetDirty true
 
         let globalHotkeys =
             [
@@ -178,8 +179,8 @@ module Main =
                     { model with
                         LastHotkeyWrap_Global = currentWrapBehavior_Global
                         LastHotkeyWrap_Specific = currentWrapBehavior_Specific
-                        DirtyScreen = model.DirtyScreen || hotkeyWrapBehaviorChanged
                     }
+                    |> fun x -> x.SetDirty (model.Window.DirtyScreen || hotkeyWrapBehaviorChanged)
                 else model
 
             if model.ShowModel then
@@ -223,12 +224,12 @@ module Main =
 
                 let newModel, continueLoop = step raiseMessage keyOpt prevModel
 
-                let wasDirty = newModel.DirtyScreen
+                let wasDirty = newModel.Window.DirtyScreen
 
                 let newModel =
-                    if newModel.DirtyScreen then
+                    if newModel.Window.DirtyScreen then
                         CLEAR "Screen is dirty"
-                        { newModel with DirtyScreen = false }
+                        newModel.SetDirty false
                     else newModel
 
                 if newModel <> prevModel then

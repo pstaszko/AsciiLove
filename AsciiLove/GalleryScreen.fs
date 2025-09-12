@@ -130,7 +130,8 @@ module GalleryScreen =
                 match model.ArtSettings.CurrentArt with
                 | Some currentArt when currentArt = art -> false
                 | _ -> true
-            { model with DirtyScreen = dirty; ArtSettings = { model.ArtSettings with CurrentArt = Some art } }
+            { model with ArtSettings = { model.ArtSettings with CurrentArt = Some art } }
+            |> fun x -> x.SetDirty dirty
 
     let hotkeys =
         [

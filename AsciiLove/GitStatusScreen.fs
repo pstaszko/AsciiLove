@@ -78,7 +78,7 @@ module GitStatusScreen =
             | ExpandAll -> setVis Visibility.Visible
             | CollapseAll -> setVis Visibility.Collapsed
             //|& fun _ -> CLEAR "Expanding/Collapsing all repos"
-            |> fun x -> { x with DirtyScreen = true }
+            |> fun x -> x.SetDirty true
         | ActOnSelectedReport action ->
             gm.SelectedGitStatus
             </> fun (selectedStatus: GitRepoStatusReport) ->
