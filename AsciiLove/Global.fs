@@ -16,12 +16,11 @@ module Global =
 
     let Console_WriteLine (txt: string) = Console.WriteLine(txt)
 
-    let maybeGetKey() =
-        if Console.KeyAvailable then
-            Console.ReadKey(true) |> Some
-        else None
-
     module ConsoleUtils =
+        let maybeGetKey() =
+            if Console.KeyAvailable then
+                Console.ReadKey(true) |> Some
+            else None
         let mutable lastSize = None
         let setSize (size: int) =
             #if RELEASE

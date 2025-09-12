@@ -229,7 +229,7 @@ module Main =
 
         let loop serialize (modelUpdateMessageCallbacks: ModelUpdateMessageCallback list) raiseMessage forceView (prevModel: Model) =
             let rec go forceView (prevModel: Model) =
-                let keyOpt = maybeGetKey()
+                let keyOpt = ConsoleUtils.maybeGetKey()
 
                 let newModel, continueLoop = step raiseMessage keyOpt prevModel
 
