@@ -8,6 +8,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AsciiLove.Tests", "AsciiLov
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Atomic.Operators", "..\Atomic.Operators\Atomic.Operators\Atomic.Operators.fsproj", "{EDCACBA4-CEBE-4AD3-BD9F-5E386F1A0000}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "git-status-cache-dotnet", "git-status-cache-dotnet\git-status-cache-dotnet.fsproj", "{519F8F9F-8C57-440D-A5B4-E8D65C9DAFD4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{EDCACBA4-CEBE-4AD3-BD9F-5E386F1A0000}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDCACBA4-CEBE-4AD3-BD9F-5E386F1A0000}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDCACBA4-CEBE-4AD3-BD9F-5E386F1A0000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{519F8F9F-8C57-440D-A5B4-E8D65C9DAFD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{519F8F9F-8C57-440D-A5B4-E8D65C9DAFD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{519F8F9F-8C57-440D-A5B4-E8D65C9DAFD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{519F8F9F-8C57-440D-A5B4-E8D65C9DAFD4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

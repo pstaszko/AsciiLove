@@ -9,10 +9,10 @@
     <Content Include="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Compile Include="GitCachePipe.fs" />
     <Compile Include="Config.fs" />
     <Compile Include="Logging.fs" />
     <Compile Include="Global.fs" />
-    <Compile Include="GitCachePipe.fs" />
     <Compile Include="GitDomain.fs" />
     <Compile Include="Domain.fs" />
     <Compile Include="RepoStatus.fs" />
@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Starly\Atomic.Operators\Atomic.Operators\Atomic.Operators.fsproj" />
+    <ProjectReference Include="..\git-status-cache-dotnet\git-status-cache-dotnet.fsproj" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>

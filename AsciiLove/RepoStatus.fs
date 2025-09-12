@@ -13,7 +13,7 @@ module RepoStatus =
             |> Some
         with _ -> None
     let getGitStatusFromCacheStrong (path: string) =
-        getGitStatusFromCache path
+        getGitStatusFromCache true path
         |> fun x ->
             let getArray (name: string) =
                 x.[name] :?> JsonArray

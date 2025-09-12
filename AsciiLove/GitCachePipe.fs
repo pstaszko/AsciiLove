@@ -58,15 +58,12 @@ module GitStatusCacheClient =
         return latestJson
     }
 
-    let private getExecutableDownloadUrl () = task {
+    let private getExecutableDownloadUrl (requireLatest: bool) = task {
         let! latestJson = getLatestReleaseJson()
         let mutable latest = JsonNode.Parse(latestJson).AsObject()
 
         if not (testRelease latest) then
-            Console.ForegroundColor <- ConsoleColor.Yellow
-            Console_WriteLine("Latest git-status-cache release is not compatible.")
-            Console_WriteLine("Falling back to compatible release.")
-            Console.ResetColor()
+            if requireLatest then failwith "Latest git-status-cache release is not compatible."
 
             http.DefaultRequestHeaders.UserAgent.ParseAdd("git-status-cache-posh-client")
             let! allReleasesJson =
@@ -101,32 +98,25 @@ module GitStatusCacheClient =
         //return raise (InvalidOperationException("Failed to find GitStatusCache.exe download URL."))
     }
 
-    let updateGitStatusCache () = task {
+    let updateGitStatusCache (requireLatest: bool) = task {
         removeGitStatusCache()
         let binPath = getBinPath()
         if not (Directory.Exists(binPath)) then
-            Console.ForegroundColor <- ConsoleColor.Green
-            Console_WriteLine($"Creating directory for GitStatusCache.exe at %s{binPath}")
-            Console.ResetColor()
             Directory.CreateDirectory(binPath) |> ignore
 
         let exePath = getExecutablePath()
         if File.Exists(exePath) then File.Delete(exePath)
 
-        Console.ForegroundColor <- ConsoleColor.Green
-        Console_WriteLine($"Downloading %s{exePath}")
-        Console.ResetColor()
-
-        let! url = getExecutableDownloadUrl()
+        let! url = getExecutableDownloadUrl requireLatest
         let! bytes = http.GetByteArrayAsync(url)
         do! File.WriteAllBytesAsync(exePath, bytes)
     }
 
-    let private startGitStatusCache () =
+    let private startGitStatusCache requireLatest =
         if Process.GetProcessesByName("GitStatusCache").Length = 0 then
             let exePath = getExecutablePath()
             if not (File.Exists(exePath)) then
-                let t = updateGitStatusCache()
+                let t = updateGitStatusCache requireLatest
                 t.Wait()
                 //raise (InvalidOperationException("GitStatusCache.exe not found. Call UpdateGitStatusCache to download."))
             Process.Start(ProcessStartInfo(FileName = exePath)) |> ignore
@@ -138,19 +128,19 @@ module GitStatusCacheClient =
             pipe <- None
         | None -> ()
 
-    let private connectPipe () =
+    let private connectPipe requireLatest =
         match pipe with
         | Some p when p.IsConnected -> ()
         | _ ->
             disconnectPipe()
-            startGitStatusCache()
+            startGitStatusCache requireLatest
             let p = new NamedPipeClientStream(".", "GitStatusCache", PipeDirection.InOut, PipeOptions.WriteThrough)
             p.Connect(100)
             p.ReadMode <- PipeTransmissionMode.Message
             pipe <- Some p
 
-    let private sendRequestToGitStatusCache (requestJson: string) : JsonNode =
-        connectPipe()
+    let private sendRequestToGitStatusCache requireLatest (requestJson: string) : JsonNode =
+        connectPipe requireLatest
         let encoding = Encoding.UTF8
         let buffer = encoding.GetBytes(requestJson)
 
@@ -176,7 +166,7 @@ module GitStatusCacheClient =
                     JsonNode.Parse(response)
                 with :? IOException ->
                     disconnectPipe()
-                    connectPipe()
+                    connectPipe requireLatest
                     if retries > 0 then
                         tryWrite (retries - 1)
                         |> fun x -> x
@@ -185,22 +175,22 @@ module GitStatusCacheClient =
 
         tryWrite 1
 
-    let stopGitStatusCache () =
+    let stopGitStatusCache requireLatest =
         let obj = {| Version = 1; Action = "Shutdown" |}
         let json = JsonSerializer.Serialize(obj)
-        sendRequestToGitStatusCache json
+        sendRequestToGitStatusCache requireLatest json
 
-    let restartGitStatusCache () =
-        stopGitStatusCache() |> ignore
-        connectPipe()
+    let restartGitStatusCache requireLatest =
+        stopGitStatusCache requireLatest |> ignore
+        connectPipe requireLatest
         JsonObject()
 
-    let getGitStatusFromCache (path: string) =
+    let getGitStatusFromCache requireLatest (path: string) =
         let obj = {| Version = 1; Action = "GetStatus"; Path = path |}
         let json = JsonSerializer.Serialize(obj)
-        sendRequestToGitStatusCache json
+        sendRequestToGitStatusCache requireLatest json
 
-    let getGitStatusCacheStatistics () =
+    let getGitStatusCacheStatistics requireLatest =
         let obj = {| Version = 1; Action = "GetCacheStatistics" |}
         let json = JsonSerializer.Serialize(obj)
-        sendRequestToGitStatusCache json
+        sendRequestToGitStatusCache requireLatest json
