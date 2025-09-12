@@ -56,6 +56,13 @@ module GitStatusScreen =
     let update (model: Model) (msg: GitStatusMsg) =
         let log x = ()
         let gm = model.GitInfo
+        let getVisibleFiles () =
+            gm.GitStatuses
+            |?| (fun x -> gm.GetMetaOrDefault (x.GetGitStatusMetaKey()) |> _.Visibility = Visibility.Visible)
+            |> List.collect ^ fun x ->
+                x.FileBuckets
+                |> List.collect _.Files
+
         match msg with
         | ActOnAllReports action ->
             let setVis newVisibility =
@@ -159,7 +166,9 @@ module GitStatusScreen =
             maybeRepo
             |> model.GitInfo.SetSelectedGitStatus
             |> model.SetGitInfo
-
+        | SetSelectedFile maybeFile ->
+            model.GitInfo.SetSelectedFile maybeFile
+            |> model.SetGitInfo
         | VerticalSelectionChange mode ->
             let gm = model.GitInfo
             match gm.Side with
@@ -197,53 +206,55 @@ module GitStatusScreen =
                 newSelectedRepo |> SetSelectedGitRepoStatus |> GitStatusMsg |> post
                 model
             | CursorSide.Right ->
-                let allFiles =
-                    gm.GitStatuses
-                    |?| (fun x -> gm.GetMetaOrDefault (x.GetGitStatusMetaKey()) |> _.Visibility = Visibility.Visible)
-                    |> List.collect ^ fun x ->
-                        x.FileBuckets
-                        |> List.collect _.Files
+                let visibleFiles = getVisibleFiles()
                 match mode with
                 | VerticalSelectionChange.Up ->
                     gm.SelectedFile
                     |> function
                     | Some currentFile ->
-                        allFiles
+                        visibleFiles
                         |> List.tryFindIndex ((=) currentFile)
-                        <!> allFiles.Length - 1
+                        <!> visibleFiles.Length - 1
                         |> fun x -> x - 1
-                        |> swap List.tryItem allFiles
+                        |> swap List.tryItem visibleFiles
                         |> function
                         | Some x -> Some x
-                        | None -> allFiles.[allFiles.Length - 1] |> Some
-                        |> gm.SetSelectedFile
-                        |> model.SetGitInfo
+                        | None -> visibleFiles.[visibleFiles.Length - 1] |> Some
                     | None ->
-                        allFiles.[allFiles.Length - 1]
+                        visibleFiles.[visibleFiles.Length - 1]
                         |> Some
-                        |> gm.SetSelectedFile
-                        |> model.SetGitInfo
                 | VerticalSelectionChange.Down ->
                     gm.SelectedFile
                     |> function
                     | Some currentFile ->
-                        allFiles
+                        visibleFiles
                         |> List.tryFindIndex ((=) currentFile)
                         <!> -1
                         |> fun x -> x + 1
-                        |> swap List.tryItem allFiles
+                        |> swap List.tryItem visibleFiles
                         |> function
                         | Some x -> Some x
-                        | None -> allFiles.[0] |> Some
-                        |> gm.SetSelectedFile
-                        |> model.SetGitInfo
+                        | None -> visibleFiles.[0] |> Some
                     | None ->
-                        allFiles.[0]
+                        visibleFiles.[0]
                         |> Some
-                        |> gm.SetSelectedFile
-                        |> model.SetGitInfo
+                |> SetSelectedFile
+                |> GitStatusMsg
+                |> post
+
+                model
 
         | HorizSelectionChange mode ->
+            model.GitInfo.SelectedFile
+            |> function
+            | Some _ -> ()
+            | None -> 
+                getVisibleFiles()
+                |> List.tryHead
+                |> SetSelectedFile
+                |> GitStatusMsg
+                |> post
+
             { model.GitInfo with Side = mode }
             |> model.SetGitInfo
 

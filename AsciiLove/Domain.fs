@@ -342,6 +342,7 @@ module Messages =
         | TrySetSelectedGitRepoStatus of string
         | ActOnSelectedReport of GitRepoStatusReportAction
         | ActOnAllReports of AllReportsAction
+        | SetSelectedFile of string option
 
     type SettingsMsg =
         | IncIncrementStep
