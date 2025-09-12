@@ -119,11 +119,11 @@ module RepoStatus =
                 if behindBy > 0 then $"Behind: %i{behindBy}"
                 if s.Stashes.Length > 0 then $"Stashes: %i{s.Stashes.Length}"
             ]
-            |> fun generalDirt -> 
+            |> fun generalDirt ->
                 s.FileBuckets
                 |> Seq.choose ^ fun x -> if x.Files.Length > 0 then $"{x.Name}: %i{x.Files.Length}" |> Some  else None
                 |> Seq.toList
-                |> fun specificTypesOfDirt -> 
+                |> fun specificTypesOfDirt ->
                     generalDirt @ specificTypesOfDirt
 
         let dirtyFiles = s.FileBuckets |> Seq.sumBy _.Files.Length
@@ -140,7 +140,7 @@ module RepoStatus =
             Console.Write(text)
 
         let writeLine (text: string) =
-            Console.WriteLine(text)
+            Console_WriteLine text
             Console.Write indentation
 
         let dirtText = String.Join(", ", dirt)
@@ -168,12 +168,12 @@ module RepoStatus =
                 fileBucket.filesInBucket
                 |% fun fileInBucket ->
                     let isSelected = selectedFile.IsSome && selectedFile.Value = fileInBucket
-                    if isSelected && side = CursorSide.Right then 
-                        "->" 
-                    else 
-                        "  " 
+                    if isSelected && side = CursorSide.Right then
+                        "->"
+                    else
+                        "  "
                     |> writeWithColor ConsoleColor.White
-                    
+
                     writeWithColor fileBucket.consoleColor $"  {fileInBucket}"
                     writeLine ""
 

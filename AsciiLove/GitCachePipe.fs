@@ -64,8 +64,8 @@ module GitStatusCacheClient =
 
         if not (testRelease latest) then
             Console.ForegroundColor <- ConsoleColor.Yellow
-            Console.WriteLine("Latest git-status-cache release is not compatible.")
-            Console.WriteLine("Falling back to compatible release.")
+            Console_WriteLine("Latest git-status-cache release is not compatible.")
+            Console_WriteLine("Falling back to compatible release.")
             Console.ResetColor()
 
             http.DefaultRequestHeaders.UserAgent.ParseAdd("git-status-cache-posh-client")
@@ -106,7 +106,7 @@ module GitStatusCacheClient =
         let binPath = getBinPath()
         if not (Directory.Exists(binPath)) then
             Console.ForegroundColor <- ConsoleColor.Green
-            Console.WriteLine($"Creating directory for GitStatusCache.exe at %s{binPath}")
+            Console_WriteLine($"Creating directory for GitStatusCache.exe at %s{binPath}")
             Console.ResetColor()
             Directory.CreateDirectory(binPath) |> ignore
 
@@ -114,7 +114,7 @@ module GitStatusCacheClient =
         if File.Exists(exePath) then File.Delete(exePath)
 
         Console.ForegroundColor <- ConsoleColor.Green
-        Console.WriteLine($"Downloading %s{exePath}")
+        Console_WriteLine($"Downloading %s{exePath}")
         Console.ResetColor()
 
         let! url = getExecutableDownloadUrl()
@@ -133,7 +133,9 @@ module GitStatusCacheClient =
 
     let private disconnectPipe () =
         match pipe with
-        | Some p -> p.Dispose(); pipe <- None
+        | Some p ->
+            p.Dispose()
+            pipe <- None
         | None -> ()
 
     let private connectPipe () =
@@ -170,7 +172,7 @@ module GitStatusCacheClient =
                             bytesRead = chunkSize
                         ) do ()
                         encoding.GetString(memory.GetBuffer(), 0, totalBytesRead)
-                        
+
                     JsonNode.Parse(response)
                 with :? IOException ->
                     disconnectPipe()

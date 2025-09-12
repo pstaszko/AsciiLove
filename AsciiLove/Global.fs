@@ -2,40 +2,24 @@ namespace AsciiLove
 open System
 [<AutoOpen>]
 module Global =
-    //let (^) f x = f x
     let swap fn arg1 arg2 = fn arg2 arg1
 
-    //let log (msg: obj) = 
-    //    try
-    //        msg.ToString() |> fun x -> System.IO.File.AppendAllLines(@"C:\temp\AsciiLove.log", [x])
-    //    with _ -> ()
-
-
-    let CLEAR (reason: string) = 
+    let CLEAR (reason: string) =
         Logging.logVerbose $"RealClear: {reason}"
-        //Console.SetCursorPosition(0, 0)
-        //[0 .. 100]
-        //|> List.iter (fun _ -> Console.WriteLine("                                                                       "))
         Console.Clear()
-        Console.WriteLine("\x1b[3J");
+        Console.WriteLine("\x1b[3J")
         Console.Clear()
 
     let BREAKK x = x
 
     let BREAK x = x |> BREAKK |> ignore
-    
-    let Console_WriteLine (txt: string) = 
-        Console.WriteLine(txt)
 
-    let getKeyOpt() =
+    let Console_WriteLine (txt: string) = Console.WriteLine(txt)
+
+    let maybeGetKey() =
         if Console.KeyAvailable then
-            Console.ReadKey(true)
-            |> fun x -> x
-            //|> fun x -> x.KeyChar
-            |> fun x -> x
-            |> Some
+            Console.ReadKey(true) |> Some
         else None
-
 
     module ConsoleUtils =
         let mutable lastSize = None

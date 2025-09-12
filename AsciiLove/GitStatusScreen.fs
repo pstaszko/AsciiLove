@@ -147,7 +147,10 @@ module GitStatusScreen =
                         | Some x -> Some x
                         | None -> Some x
 
-                { model.GitInfo with SelectedGitStatus = selected; GitStatuses = newGitStatuses }
+                { model.GitInfo with
+                    SelectedGitStatus = selected
+                    GitStatuses = newGitStatuses
+                }
                 |> model.SetGitInfo
             |> fun x ->
                 let curMeta =
@@ -248,7 +251,7 @@ module GitStatusScreen =
             model.GitInfo.SelectedFile
             |> function
             | Some _ -> ()
-            | None -> 
+            | None ->
                 getVisibleFiles()
                 |> List.tryHead
                 |> SetSelectedFile

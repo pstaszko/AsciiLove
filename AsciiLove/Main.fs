@@ -229,7 +229,7 @@ module Main =
 
         let loop serialize (modelUpdateMessageCallbacks: ModelUpdateMessageCallback list) raiseMessage forceView (prevModel: Model) =
             let rec go forceView (prevModel: Model) =
-                let keyOpt = getKeyOpt()
+                let keyOpt = maybeGetKey()
 
                 let newModel, continueLoop = step raiseMessage keyOpt prevModel
 
@@ -245,7 +245,7 @@ module Main =
                     modelUpdateMessageCallbacks
                     |% fun mum ->
                         mum.Callback newModel
-                        |> fun x -> 
+                        |> fun x ->
                             serialize x
                             |> raiseMessage mum.Name
 
@@ -277,7 +277,7 @@ module Main =
     [<EntryPoint>]
     let main args =
         configLogger()
-        
+
         Serilog.Debugging.SelfLog.Enable(fun msg -> Console.WriteLine(msg); logDebug msg)
 
         ConsoleUtils.setSize 12
@@ -311,13 +311,13 @@ module Main =
             [
                 go "SelectedGitStatusPath" ^ fun x -> x.GitInfo.SelectedGitStatus </> _.Path <!> ""
             ]
-            
+
         args
         |? fun x -> x.Length > 0 //remove empty args
         |> Seq.toList
         |> Screens.GitStatusScreen.startMonitor
 
         let serialize (o: obj) = Newtonsoft.Json.JsonConvert.SerializeObject(o, Newtonsoft.Json.Formatting.Indented)
-        
+
         Program.loop serialize modelUpdateMessages mqtt.PublishMessage true init
         0
