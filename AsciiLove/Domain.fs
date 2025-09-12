@@ -248,6 +248,10 @@ module Domain =
             this.GitStatusMeta
             |> Map.tryFind repoPath
             <!> GitRepoStatusReportMeta.Default
+            
+    type HotkeyWrapBehavior =
+        | Wrap
+        | NoWrap
 
         //member this.ReplaceAReport (newReport: GitRepoStatusReport) =
         //    let n =
@@ -258,6 +262,12 @@ module Domain =
         //            else
         //                existingReport
         //    { this with GitStatuses = n }
+    
+    type ScreenHouseKeeping =
+        {
+            DirtyScreen: bool
+        }
+
     type Model =
         {
             ShowHotkeys: bool
@@ -269,6 +279,8 @@ module Domain =
             DirtyScreen: bool
             ShowModel: bool
             GitInfo: GitInfo
+            LastHotkeyWrap_Specific: HotkeyWrapBehavior option
+            LastHotkeyWrap_Global: HotkeyWrapBehavior option
         }
         member this.SetGitInfo x = { this with GitInfo = x }
         static member MiniDump (model: Model) =

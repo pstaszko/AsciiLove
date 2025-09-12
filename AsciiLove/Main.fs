@@ -35,6 +35,8 @@ module Main =
                 Side = CursorSide.Left
                 SelectedFile = None
             }
+            LastHotkeyWrap_Global = None
+            LastHotkeyWrap_Specific = None
         }
     [<RequireQualifiedAccess>]
     type LoopBehavior =
@@ -74,13 +76,13 @@ module Main =
         let globalHotkeys =
             [
                 //Op: Auto
-                Hotkey.Create("g"  , "Open Gallery"             , GalleryMsg GalleryMsg.Show)
-                Hotkey.Create("w"  , "Open GS"                  , go GitStatus)
-                Hotkey.Create("m"  , "Open Main"                , go Main)
-                Hotkey.Create("s"  , "Open Settings"            , go Settings)
-                Hotkey.Create("h"  , "Open Help"                , go Help)
-                Hotkey.Create("t"  , "[Debug] Toggle Model View", GlobalMsg ToggleShowModel)
-                Hotkey.Create("q"  , "Quit Application"         , GlobalMsg Quit)
+                Hotkey.Create("g"    , "Open Gallery"             , GalleryMsg GalleryMsg.Show)
+                Hotkey.Create("w"    , "Open GS"                  , go GitStatus)
+                Hotkey.Create("m"    , "Open Main"                , go Main)
+                Hotkey.Create("s"    , "Open Settings"            , go Settings)
+                Hotkey.Create("h"    , "Open Help"                , go Help)
+                Hotkey.Create("t"    , "[Debug] Toggle Model View", GlobalMsg ToggleShowModel)
+                Hotkey.Create("q"    , "Quit Application"         , GlobalMsg Quit)
                 //Hotkey.Create("Esc", "Open Main"                , go Main)
                 //Op: End
             ]
@@ -109,7 +111,7 @@ module Main =
                         isKeyAMatch hotkey.Key hotkey.Mods key
             |> Option.iter (fun hotkey -> post (hotkey.Msg))
 
-        let view (model: Model) : unit =
+        let view (model: Model) : Model =
             if model.ShowModel then CLEAR "Reset screen every tick if the model is being shown"
             match model.Screen with
             | Main -> Screens.MainScreen.view model
@@ -118,46 +120,67 @@ module Main =
             | Help -> Screens.HelpScreen.view model
             | Gallery -> Screens.GalleryScreen.view model
 
-            if model.ShowHotkeys && model.Screen <> Gallery then
-                let formatHotkey (hotkey: Hotkey) = $"[{hotkey.Key}] {hotkey.Description}"
-                let printHotkey = formatHotkey >> Console_WriteLine
+            let model =
+                if model.ShowHotkeys && model.Screen <> Gallery then
+                    let formatHotkey (hotkey: Hotkey) = $"[{hotkey.Key}] {hotkey.Description}"
+                    let printHotkey = formatHotkey >> Console_WriteLine
 
-                let printHotkeys (hotkeys: Hotkey list) =
-                    match hotkeys with
-                    | [] -> ()
-                    | hotkeys ->
-                        let wide =
+                    let printHotkeys (hotkeys: Hotkey list) : HotkeyWrapBehavior option =
+                        match hotkeys with
+                        | [] -> None
+                        | hotkeys ->
+                            let wide =
+                                hotkeys
+                                |> List.map formatHotkey
+                                |> String.concat " "
+                            if wide.Length > Console.WindowWidth then
+                                hotkeys |> List.iter printHotkey
+
+                                HotkeyWrapBehavior.NoWrap
+                                |> Some
+                            else
+                                wide
+                                |> Console_WriteLine
+
+                                HotkeyWrapBehavior.Wrap
+                                |> Some
+
+                    let currentWrapBehavior_Specific =
+                        match model.Screen with
+                        //Op: Auto
+                        | Gallery   -> Screens.GalleryScreen.hotkeys
+                        | GitStatus -> Screens.GitStatusScreen.hotkeys
+                        | Main      -> Screens.MainScreen.hotkeys
+                        | Settings  -> Screens.SettingsScreen.hotkeys
+                        | Help      -> Screens.HelpScreen.hotkeys
+                        //Op: End
+                        |> function
+                        | [] -> None
+                        | hotkeys ->
+                            Console_WriteLine("")
+                            Console_WriteLine("")
+                            Console_WriteLine($"[{model.Screen} Screen Hotkeys]")
                             hotkeys
-                            |> List.map formatHotkey
-                            |> String.concat " "
-                        if wide.Length > Console.WindowWidth then
-                            hotkeys |> List.iter printHotkey
-                        else
-                            wide
-                            |> Console_WriteLine
+                            |> printHotkeys
 
-
-                match model.Screen with
-                | Gallery -> Screens.GalleryScreen.hotkeys
-                | GitStatus -> Screens.GitStatusScreen.hotkeys
-                | Main -> Screens.MainScreen.hotkeys
-                | Settings -> Screens.SettingsScreen.hotkeys
-                | Help -> Screens.HelpScreen.hotkeys
-                |> function
-                | [] -> ()
-                | hotkeys ->
+                    //Console_WriteLine("")
                     Console_WriteLine("")
-                    Console_WriteLine("")
-                    Console_WriteLine($"[{model.Screen} Screen Hotkeys]")
-                    hotkeys
-                    |> printHotkeys
+                    Console_WriteLine("[Global Hotkeys]")
 
-                //Console_WriteLine("")
-                Console_WriteLine("")
-                Console_WriteLine("[Global Hotkeys]")
+                    let currentWrapBehavior_Global =
+                        globalHotkeys
+                        |> printHotkeys
 
-                globalHotkeys
-                |> printHotkeys
+                    let hotkeyWrapBehaviorChanged =
+                        model.LastHotkeyWrap_Global <> currentWrapBehavior_Global ||
+                        model.LastHotkeyWrap_Specific <> currentWrapBehavior_Specific
+
+                    { model with
+                        LastHotkeyWrap_Global = currentWrapBehavior_Global
+                        LastHotkeyWrap_Specific = currentWrapBehavior_Specific
+                        DirtyScreen = model.DirtyScreen || hotkeyWrapBehaviorChanged
+                    }
+                else model
 
             if model.ShowModel then
                 Console_WriteLine ""
@@ -174,6 +197,7 @@ module Main =
                             .RoundedBorder()
                             .BorderColor(Color.White)
                     AnsiConsole.Write(panel)
+            model
 
         let step raiseMessage (keyOpt: ConsoleKeyInfo option) (prevModel: Model): Model * LoopBehavior =
             keyOpt
@@ -213,8 +237,10 @@ module Main =
                         mum.Fn newModel
                         |> fun x -> srlz x |> raiseMessage mum.Name
 
-                if newModel <> prevModel || forceView || wasDirty then
-                    view newModel
+                let newModel =
+                    if newModel <> prevModel || forceView || wasDirty then
+                        view newModel
+                    else newModel
 
                 match continueLoop with
                 | LoopBehavior.Stop -> CLEAR "Program loop stopped"
