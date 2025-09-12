@@ -1,9 +1,6 @@
-﻿namespace AsciiLove
+namespace AsciiLove
 //Op: Auto
 open System
-open System.Text.Json.Nodes
-open Atomic.Operators
-open GitStatusCacheClient
 //Op: End
 [<AutoOpen>]
 module GitDomain =
@@ -18,7 +15,7 @@ module GitDomain =
         | Visible
         | Hidden
         | Collapsed
-        
+
     type GitStatusMetaKey =
         {
             Path: string

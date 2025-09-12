@@ -8,7 +8,7 @@ open System.Text
 open System.Text.Json
 open System.Text.Json.Nodes
 
-module GitStatusCacheClient =
+module Client =
     let mutable private pipe : NamedPipeClientStream option = None
     let private http = new HttpClient()
 

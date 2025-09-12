@@ -1,7 +1,6 @@
 namespace AsciiLove.Screens
 
 open AsciiLove
-open AsciiLove.Domain
 open System
 
 module HelpScreen =
@@ -13,7 +12,7 @@ module HelpScreen =
 
     let update (model: Model) (msg: HelpMsg) =
         match msg with
-        | CloseHelp -> 
+        | CloseHelp ->
             post (go Main)
             model
 

@@ -2,7 +2,7 @@ namespace AsciiLove
 open System
 open System.Text.Json.Nodes
 open Atomic.Operators
-open GitStatusCacheClient
+open git_status_cache_dotnet.Client
 
 open GitDomain
 [<AutoOpen>]

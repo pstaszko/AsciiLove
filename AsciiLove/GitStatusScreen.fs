@@ -11,7 +11,6 @@ open Atomic.Operators
 open AsciiLove
 //Op: End
 module GitStatusScreen =
-    open GitDomain
     let startMonitor dirs =
         let check() =
             dirs
