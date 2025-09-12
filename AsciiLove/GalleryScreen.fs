@@ -17,7 +17,6 @@ open Spectre.Console
 module GalleryScreen =
     module ColorPrint =
         let printWithColor (color: string) (line: string) =
-            //CLEAR()
             let reset = "\u001b[0m"
             Console_WriteLine($"{color}%s{line}{reset}")
 
@@ -31,7 +30,6 @@ module GalleryScreen =
         | None -> ()
         | Some art ->
             let printText() =
-                //Console.Clear()
                 CLEAR "Before printing art in GallaryScreen.view"
                 let renderInfo = art.RenderInfo()
                 ConsoleUtils.setSize renderInfo.Size
@@ -73,26 +71,22 @@ module GalleryScreen =
         | OpenImageFileIfExists ->
             model.ArtSettings.CurrentArt
             |> Option.bind _.Image
-            |> Option.map shellExecute
+            </> shellExecute
             |> ignore
 
             model
         | ExploreImageText ->
             model.ArtSettings.CurrentArt
-            |> Option.map _.TxtFullPath
-            //|> Option.map FileInfo
-            //|> Option.map _.Directory
-            //|> Option.map _.FullName
-            |> Option.map openExplorerToFile
+            </> _.TxtFullPath
+            </> openExplorerToFile
             |> fun x -> x
             |> ignore
 
             model
         | OpenImageText ->
             model.ArtSettings.CurrentArt
-            |> Option.map _.TxtFullPath
-            |> Option.map shellExecute
-            |> ignore
+            </> _.TxtFullPath
+            <|> shellExecute
 
             model
         | SetDisplayMode mode ->
@@ -123,7 +117,7 @@ module GalleryScreen =
             GalleryMsg LoadArt |> post
             GlobalMsg GlobalMsg.ClearScreen |> post
             GalleryMsg SetRandomArt |> post
-            go Gallery |> post
+            goToScreen Gallery |> post
             model
         | DisplayArt art ->
             let dirty =

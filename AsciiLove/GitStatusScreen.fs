@@ -72,11 +72,9 @@ module GitStatusScreen =
                 |> gm.SetGitStatusMeta
                 |> model.SetGitInfo
 
-            //CLEAR "Expanding/Collapsing all repos"
             match action with
             | ExpandAll -> setVis Visibility.Visible
             | CollapseAll -> setVis Visibility.Collapsed
-            //|& fun _ -> CLEAR "Expanding/Collapsing all repos"
             |> fun x -> x.SetDirty true
         | ActOnSelectedReport action ->
             gm.SelectedGitStatus
@@ -111,35 +109,28 @@ module GitStatusScreen =
             model
         | SetGitStatus newGitStatuses ->
             let newGitStatuses = newGitStatuses |> List.sortBy _.RepoPath.ToLower()
-
+            
             if gm.GitStatuses = newGitStatuses then
-                log $"a (screen: {model.Screen})"
                 if model.Screen = GitStatus then
-                    log "b"
                     match newGitStatuses with
                     | [] ->
-                        log "c"
                         GalleryMsg.Show
                         |> GalleryMsg
                         |> post
-                    | _ ->
-                        log "d"
-                        ()
+                    | _ -> ()
 
                 model
             else
                 let selected =
                     match newGitStatuses with
                     | [] ->
-                        log "e"
                         GalleryMsg.Show
                         |> GalleryMsg
                         |> post
 
                         model.GitInfo.SelectedGitStatus
                     | x :: xs ->
-                        if model.Screen = Gallery then go GitStatus |> post
-                        log "f"
+                        if model.Screen = Gallery then goToScreen GitStatus |> post
                         post (GlobalMsg ClearScreen)
                         model.GitInfo.SelectedGitStatus
                         |> function
@@ -205,6 +196,7 @@ module GitStatusScreen =
                             |> swap List.item gm.GitStatuses
                             |> Some
                         with _ -> None
+                
                 newSelectedRepo |> SetSelectedGitRepoStatus |> GitStatusMsg |> post
                 model
             | CursorSide.Right ->

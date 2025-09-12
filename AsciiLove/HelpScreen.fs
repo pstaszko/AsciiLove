@@ -4,7 +4,6 @@ open AsciiLove
 open System
 
 module HelpScreen =
-
     let view (_: Model) =
         Console.SetCursorPosition(0, 0)
         Console_WriteLine("Help Screen")
@@ -13,12 +12,12 @@ module HelpScreen =
     let update (model: Model) (msg: HelpMsg) =
         match msg with
         | CloseHelp ->
-            post (go Main)
+            post (goToScreen Main)
             model
 
     let hotkeys =
         [
             //Op: Auto
-            Hotkey.Create("Esc", "Close Help", go Main)
+            Hotkey.Create("Esc", "Close Help", goToScreen Main)
             //Op: End
         ]

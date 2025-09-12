@@ -307,6 +307,7 @@ module Domain =
 module Messages =
     open Domain
     open ArtDomain
+
     type GalleryMsg =
         | SetDisplayMode of ArtDisplayMode
         | SetFilter of ArtFilter
@@ -368,7 +369,6 @@ module Messages =
     type HelpMsg =
         | CloseHelp
 
-
     type Topic = string
 
     type Message = string
@@ -398,7 +398,7 @@ module Messages =
     let setMods (mods: string) (hotkey: Hotkey) =
         { hotkey with Mods = mods }
 
-    let go (screen: Screen) = GlobalMsg (OpenScreen screen)
+    let goToScreen (screen: Screen) = GlobalMsg (OpenScreen screen)
 
 [<AutoOpen>]
 module MessageQueue =

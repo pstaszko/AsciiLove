@@ -9,7 +9,6 @@ open AsciiLove.Messages
 open AsciiLove
 //Op: End
 module MainScreen =
-
     let view (model: Model) =
         Console.SetCursorPosition(0, 0)
         Console_WriteLine($"Count: %i{model.Count}      ")

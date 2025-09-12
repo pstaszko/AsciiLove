@@ -2,8 +2,6 @@ namespace AsciiLove.Screens
 //Op: Auto
 open System
 
-open AsciiLove.Domain
-
 open AsciiLove
 //Op: End
 module SettingsScreen =

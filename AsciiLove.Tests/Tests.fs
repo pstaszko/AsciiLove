@@ -18,6 +18,7 @@ module Utils =
         WinMergeEquals.WinMergeEquals.AreEqualWinMerge (srl expected) (srl actual) WinMergeEquals.WhitespaceSimplify.None "Exp" "Act"
 
 type ``MVU Tests``() =
+    let SetDirtyTrue (model: Model) = model.SetDirty true
     let stepAdapt model (maybeChar: char option) =
         let maybeConsoleKeyInfo = maybeChar |> Option.map ^ fun a -> new ConsoleKeyInfo(a, ConsoleKey.Escape, false, false, false)
         Program.step (fun _ _ -> ()) maybeConsoleKeyInfo model
@@ -29,17 +30,17 @@ type ``MVU Tests``() =
 
     [<Fact>]
     member _.``Clear screen, no changes to model``() =
-        let init = AsciiLove.Main.init
+        let init = AsciiLove.Main.init |> SetDirtyTrue
         post (GlobalMsg ClearScreen)
         stepAdapt init None
-        |> should equal ({ init with DirtyScreen = true }, LoopBehavior.Continue)
+        |> should equal (init, LoopBehavior.Continue)
 
     [<Fact>]
     member _.``Go settings, changes``() =
         let init = AsciiLove.Main.init
-        post (go Settings)
+        post (goToScreen Settings)
         stepAdapt init None
-        |> should equal ({ init with Screen = Settings; DirtyScreen = true}, LoopBehavior.Continue)
+        |> should equal ({ init with Screen = Settings }.SetDirty true, LoopBehavior.Continue)
 
     [<Fact>]
     member _.``Sending Q, quits``() =
@@ -51,21 +52,21 @@ type ``MVU Tests``() =
     member _.``Sending s, go to settings``() =
         let init = AsciiLove.Main.init
         stepAdapt init (Some 's')
-        |> should equal ({ init with Screen = Settings; DirtyScreen = true}, LoopBehavior.Continue)
+        |> should equal ({ init with Screen = Settings }.SetDirty true, LoopBehavior.Continue)
 
     [<Fact>]
     member _.``Sending s from help, go to settings``() =
         let init = AsciiLove.Main.init
         let helpScreen = stepAdapt init (Some 'h') |> fst
         stepAdapt helpScreen (Some 's')
-        |> should equal ({ init with Screen = Settings; DirtyScreen = true}, LoopBehavior.Continue)
+        |> should equal ({ init with Screen = Settings }.SetDirty true, LoopBehavior.Continue)
 
     [<Fact>]
     member _.``Sending + from settings - bumps up increment``() =
         let init = AsciiLove.Main.init
         let settingsScreen = stepAdapt init (Some 's') |> fst
         stepAdapt settingsScreen (Some '+')
-        |> should equal ({ init with Screen = Settings; DirtyScreen = true; Settings = {init.Settings with IncrementStep = 2 } }, LoopBehavior.Continue)
+        |> should equal ({ init with Screen = Settings; Settings = {init.Settings with IncrementStep = 2 } }.SetDirty true, LoopBehavior.Continue)
 
     [<Fact>]
     member _.``Sending + from settings - bumps up increment - has effect on main``() =
@@ -77,11 +78,11 @@ type ``MVU Tests``() =
         |> (swap stepAdapt) (Some 'm')
         |> fst
         |> (swap stepAdapt) (Some '+')
-        |> winmergeEqual ({ init with Screen = Main; DirtyScreen = true; Count = 2; Settings = {init.Settings with IncrementStep = 2 } }, LoopBehavior.Continue)
+        |> winmergeEqual ({ init with Screen = Main; Count = 2; Settings = {init.Settings with IncrementStep = 2 } }.SetDirty true, LoopBehavior.Continue)
 
     [<Fact>]
     member _.``Sending m from settings - goes to main``() =
         let init = AsciiLove.Main.init
         let settingsScreen = stepAdapt init (Some 's') |> fst
         stepAdapt settingsScreen (Some 'm')
-        |> should equal ({ init with Screen = Main; DirtyScreen = true }, LoopBehavior.Continue)
+        |> should equal ({ init with Screen = Main }.SetDirty true, LoopBehavior.Continue)

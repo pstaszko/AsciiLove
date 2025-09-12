@@ -41,6 +41,7 @@ module Main =
                 SelectedFile = None
             }
         }
+
     [<RequireQualifiedAccess>]
     type LoopBehavior =
         | Continue
@@ -83,14 +84,13 @@ module Main =
         let globalHotkeys =
             [
                 //Op: Auto
-                Hotkey.Create("g"    , "Open Gallery"             , GalleryMsg GalleryMsg.Show)
-                Hotkey.Create("w"    , "Open GS"                  , go GitStatus)
-                Hotkey.Create("m"    , "Open Main"                , go Main)
-                Hotkey.Create("s"    , "Open Settings"            , go Settings)
-                Hotkey.Create("h"    , "Open Help"                , go Help)
-                Hotkey.Create("t"    , "[Debug] Toggle Model View", GlobalMsg ToggleShowModel)
-                Hotkey.Create("q"    , "Quit Application"         , GlobalMsg Quit)
-                //Hotkey.Create("Esc", "Open Main"                , go Main)
+                Hotkey.Create("g" , "Open Gallery"             , GalleryMsg GalleryMsg.Show)
+                Hotkey.Create("w" , "Open GS"                  , goToScreen GitStatus)
+                Hotkey.Create("m" , "Open Main"                , goToScreen Main)
+                Hotkey.Create("s" , "Open Settings"            , goToScreen Settings)
+                Hotkey.Create("h" , "Open Help"                , goToScreen Help)
+                Hotkey.Create("t" , "[Debug] Toggle Model View", GlobalMsg ToggleShowModel)
+                Hotkey.Create("q" , "Quit Application"         , GlobalMsg Quit)
                 //Op: End
             ]
 
@@ -109,13 +109,7 @@ module Main =
             |> fun hotkeys ->
                 hotkeys @ globalHotkeys
                 |> List.tryFind
-                    ^ fun hotkey ->
-                        let fixedHotkeyAsChar =
-                            match hotkey.Key with
-                            | "Esc" -> char 27
-                            | x -> x.[0]
-                        //fixedHotkeyAsChar = key.KeyChar
-                        isKeyAMatch hotkey.Key hotkey.Mods key
+                    ^ fun hotkey -> isKeyAMatch hotkey.Key hotkey.Mods key
             |> Option.iter (fun hotkey -> post (hotkey.Msg))
 
         let view (model: Model) : Model =
@@ -211,9 +205,8 @@ module Main =
 
         let step raiseMessage (keyOpt: ConsoleKeyInfo option) (prevModel: Model): Model * LoopBehavior =
             keyOpt
-            |> Option.iter
-                ^ fun key ->
-                    handleKey prevModel key
+            <|> fun key -> handleKey prevModel key
+
             let mutable newModel = prevModel
             let mutable loopBehavior = LoopBehavior.Continue
             let mutable msgOpt : Msg = Unchecked.defaultof<Msg>
@@ -261,12 +254,6 @@ module Main =
                     go false newModel
             go forceView prevModel
 
-    let (|AsPayloadString|) (x: MqttApplicationMessageReceivedEventArgs) =
-        x.ApplicationMessage.PayloadSegment
-        |> Seq.toArray
-        //x.ApplicationMessage.Payload
-        |> System.Text.Encoding.UTF8.GetString
-
     let configLogger() =
         let cfg = Config.getConfig()
         let log =
@@ -290,7 +277,7 @@ module Main =
             GalleryMsg (SetDisplayMode ArtDisplayMode.Text)
             GalleryMsg (SetFilter ArtFilter.All)
             GlobalMsg ClearScreen
-            go GitStatus
+            goToScreen GitStatus
         ]
         |> List.iter post
 

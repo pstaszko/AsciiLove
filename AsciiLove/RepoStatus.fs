@@ -12,6 +12,7 @@ module RepoStatus =
             Newtonsoft.Json.JsonConvert.DeserializeObject<'t>(json)
             |> Some
         with _ -> None
+    
     let getGitStatusFromCacheStrong (path: string) =
         getGitStatusFromCache true path
         |> fun x ->
@@ -22,20 +23,8 @@ module RepoStatus =
                         node
                         |> function
                         | :? JsonValue as v -> v.ToString()
-                        //| :? JsonObject as o ->
-                        //    match o with
-                        //    | FitsType (o: StashEntry) -> o.ToString() |> fun x -> x
-                        //        //| (:? JsonObject) FitsType (o: GitStatus) ->  // Uncomment if you want to use this
-                        //    | _ -> ""
-                            //o.AsValue()
-                        //| (:? JsonObject) FitsType (o: StashEntry) -> o.AsValue()
-                        //| :? JsonArray as a -> a.AsValue()
-                        //| :? JsonString as s -> s.AsValue()
                         | _ -> failwithf "Expected JsonValue, got %A" node
                         |> fun x -> x
-                        //|> ignore
-
-                        //node.GetValue<string>()
                 |> Seq.toList
             let v =
                     let xx = x.["Version"]
@@ -43,19 +32,16 @@ module RepoStatus =
                         xx.ToString() |> int
                     with failed ->
                         BREAK xx
-                        //failwith "asd"
                         0
             let s =
                 let ss = x.["Stashes"]
                 ss.AsArray()
                 |> Seq.map
                     ^ fun x ->
-                        //x.GetValue<StashEntry>()
                         match x.ToJsonString() with
                         | FitsType (o: StashEntry) -> o
                         | _ -> failwithf "Expected StashEntry, got %A" x
                 |> Seq.toList
-                //ss.GetValue<StashEntry>()
             { GitDomain.GitRepoStatusReport.Empty with
                 Version           = v
                 //Op: Auto
@@ -68,10 +54,6 @@ module RepoStatus =
                 UpstreamGone    = x.["UpstreamGone"].GetValue<bool>()
                 AheadBy         = x.["AheadBy"].GetValue<int>()
                 BehindBy        = x.["BehindBy"].GetValue<int>()
-                //IndexAdded    = getArray "IndexAdded"
-                //IndexModified = getArray "IndexModified"
-                //Ignored       = getArray "Ignored"
-                //Conflicted    = getArray "Conflicted"
                 Stashes         = s
                 //Op: End
                 FileBuckets =
@@ -95,15 +77,6 @@ module RepoStatus =
                         { FileBucket.Name = "WorkingUnreadable"; Color = ConsoleColor.Red     ; Files = getArray "WorkingUnreadable" }
                         //Op: End
                     ]
-                //IndexDeleted      = getArray "IndexDeleted"
-                //IndexTypeChange   = getArray "IndexTypeChange"
-                //IndexRenamed      = getArray "IndexRenamed"
-                //WorkingAdded      = getArray "WorkingAdded"
-                //WorkingModified   = getArray "WorkingModified"
-                //WorkingDeleted    = getArray "WorkingDeleted"
-                //WorkingTypeChange = getArray "WorkingTypeChange"
-                //WorkingRenamed    = getArray "WorkingRenamed"
-                //WorkingUnreadable = getArray "WorkingUnreadable"
             }
 
     let getDirtFromStatus (s: GitRepoStatusReport) =
@@ -148,7 +121,6 @@ module RepoStatus =
         writeWithColor ConsoleColor.Green $@"{s.Path}\ "
         writeWithColor ConsoleColor.White $@"[{s.Branch}] "
         writeWithColor ConsoleColor.Blue $"[{dirtText}]"
-        //writeWithColor ConsoleColor.Blue $" [{meta.Visibility}]"
         writeLine ""
 
         let filesBucketsToNote =
