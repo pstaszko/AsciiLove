@@ -210,9 +210,9 @@ module ArtDomain =
 
             { this with CurrentArt = randomArt }
 
+[<AutoOpen>]
 module Domain =
     open ArtDomain
-    open Types
 
     type Screen =
         | Main
@@ -292,7 +292,6 @@ module Domain =
 module Messages =
     open Domain
     open ArtDomain
-    open Types
     type GalleryMsg =
         | SetDisplayMode of ArtDisplayMode
         | SetFilter of ArtFilter
@@ -329,7 +328,7 @@ module Messages =
     type GitRepoStatusReportAction =
         | RememberDir
         | ToggleExpand
-        | Push
+        | GitPush
 
     type AllReportsAction =
         | ExpandAll

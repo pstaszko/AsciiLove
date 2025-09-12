@@ -13,8 +13,9 @@
     <Compile Include="Logging.fs" />
     <Compile Include="Global.fs" />
     <Compile Include="GitCachePipe.fs" />
-    <Compile Include="RepoStatus.fs" />
+    <Compile Include="GitDomain.fs" />
     <Compile Include="Domain.fs" />
+    <Compile Include="RepoStatus.fs" />
     <Compile Include="GitStatusScreen.fs" />
     <Compile Include="MainScreen.fs" />
     <Compile Include="SettingsScreen.fs" />

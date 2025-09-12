@@ -31,7 +31,7 @@ module Main =
             GitInfo = {
                 GitStatuses = []
                 SelectedGitStatus = None
-                GitStatusMeta = Map.empty<Types.GitStatusMetaKey, Types.GitRepoStatusReportMeta>
+                GitStatusMeta = Map.empty<GitDomain.GitStatusMetaKey, GitDomain.GitRepoStatusReportMeta>
                 Side = CursorSide.Left
                 SelectedFile = None
             }

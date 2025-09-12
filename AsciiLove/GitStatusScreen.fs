@@ -11,7 +11,7 @@ open Atomic.Operators
 open AsciiLove
 //Op: End
 module GitStatusScreen =
-    open Types
+    open GitDomain
     let startMonitor dirs =
         let check() =
             dirs
@@ -45,7 +45,7 @@ module GitStatusScreen =
                     m.GitStatusMeta
                     |> Map.tryFind (gitStatus.GetGitStatusMetaKey())
                     <!> GitRepoStatusReportMeta.Default
-                printGitRepoStatusReport repoIsSelected m.SelectedFile gitStatus meta dirt
+                printGitRepoStatusReport m.Side repoIsSelected m.SelectedFile gitStatus meta dirt
                 Console_WriteLine("")
 
         Console_WriteLine(m.Side.ToString())
@@ -76,6 +76,12 @@ module GitStatusScreen =
             gm.SelectedGitStatus
             </> fun (selectedStatus: GitRepoStatusReport) ->
                     match action with
+                    | GitPush ->
+                        let psi = new System.Diagnostics.ProcessStartInfo("git", "push")
+                        psi.WorkingDirectory <- selectedStatus.RepoPath
+                        psi.UseShellExecute <- true
+                        System.Diagnostics.Process.Start(psi) |> ignore
+                        model
                     | RememberDir ->
                         selectedStatus.Path |> fun x -> File.WriteAllText(@"c:\temp\lastdir.txt", x)
                         model
@@ -253,6 +259,6 @@ module GitStatusScreen =
             Hotkey.Create2(ConsoleKey.Spacebar   , "Expand/Collapse" , ToggleExpand                 |> ActOnSelectedReport                  |> Msg.GitStatusMsg)
             Hotkey.Create2(ConsoleKey.Add        , "Expand All"      , ExpandAll                    |> ActOnAllReports                      |> Msg.GitStatusMsg)
             Hotkey.Create2(ConsoleKey.Subtract   , "Collapse All"    , CollapseAll                  |> ActOnAllReports                      |> Msg.GitStatusMsg)
-            Hotkey.Create2(ConsoleKey.UpArrow    , "Push"            , Push                         |> ActOnSelectedReport                  |> Msg.GitStatusMsg) |> setMods "Alt"
+            Hotkey.Create2(ConsoleKey.UpArrow    , "Push"            , GitPush                      |> ActOnSelectedReport                  |> Msg.GitStatusMsg) |> setMods "Alt"
             //Op: End
         ]

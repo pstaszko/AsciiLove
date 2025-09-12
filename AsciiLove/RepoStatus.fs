@@ -4,97 +4,8 @@ open System.Text.Json.Nodes
 open Atomic.Operators
 open GitStatusCacheClient
 
-module Types =
-    type StashEntry =
-        {
-            Name: string
-            Sha1Id: string
-            Message: string
-        }
-
-    type Visibility =
-        | Visible
-        | Hidden
-        | Collapsed
-        
-    type GitStatusMetaKey =
-        {
-            Path: string
-        }
-
-    type GitRepoStatusReportMeta =
-        {
-            Visibility: Visibility
-            //SelectedFile: string option
-        }
-        static member Default =
-            {
-                Visibility = Visible
-                //SelectedFile = None
-            }
-    type FileBucket =
-        {
-            Name: string
-            Color: ConsoleColor
-            Files: string list
-        }
-    type GitRepoStatusReport = {
-        Version: int
-        Path: string
-        RepoPath: string
-        WorkingDir: string
-        State: string
-        Branch: string
-        Upstream: string
-        UpstreamGone: bool
-        AheadBy: int
-        BehindBy: int
-        FileBuckets: FileBucket list
-        //IndexAdded: string list
-        //IndexModified: string list
-        //IndexDeleted: string list
-        //IndexTypeChange: string list
-        //IndexRenamed: string list
-        //WorkingAdded: string list
-        //WorkingModified: string list
-        //WorkingDeleted: string list
-        //WorkingTypeChange: string list
-        //WorkingRenamed: string list
-        //WorkingUnreadable: string list
-        Ignored: string list
-        Conflicted: string list
-        Stashes: StashEntry list
-    } with
-        static member Empty =
-            {
-                Version = 0
-                Path = ""
-                RepoPath = ""
-                WorkingDir = ""
-                State = ""
-                Branch = ""
-                Upstream = ""
-                UpstreamGone = false
-                AheadBy = 0
-                BehindBy = 0
-                FileBuckets = []
-                //IndexDeleted = []
-                //IndexTypeChange = []
-                //IndexRenamed = []
-                //WorkingAdded = []
-                //WorkingModified = []
-                //WorkingDeleted = []
-                //WorkingTypeChange = []
-                //WorkingRenamed = []
-                //WorkingUnreadable = []
-                Ignored = []
-                Conflicted = []
-                Stashes = []
-            }
-        member this.GetGitStatusMetaKey () : GitStatusMetaKey =
-            { Path = this.Path }
-
-open Types
+open GitDomain
+[<AutoOpen>]
 module RepoStatus =
     let (|FitsType|_|) (json: string) : 't option =
         try
@@ -145,7 +56,7 @@ module RepoStatus =
                         | _ -> failwithf "Expected StashEntry, got %A" x
                 |> Seq.toList
                 //ss.GetValue<StashEntry>()
-            { Types.GitRepoStatusReport.Empty with
+            { GitDomain.GitRepoStatusReport.Empty with
                 Version           = v
                 //Op: Auto
                 Path            = x.["Path"].ToString()
@@ -219,10 +130,10 @@ module RepoStatus =
 
         (dirtyFiles > 0 || aheadBehindStashDirtCount > 0), dirt
 
-    let printGitRepoStatusReport (repoSelected: bool) (selectedFile: string option) (s: GitRepoStatusReport) (meta: GitRepoStatusReportMeta) (dirt: string list) =
+    let printGitRepoStatusReport (side: CursorSide) (repoSelected: bool) (selectedFile: string option) (s: GitRepoStatusReport) (meta: GitRepoStatusReportMeta) (dirt: string list) =
         let indentation = "    "
         let repoSelected =
-            if repoSelected then "-> "
+            if repoSelected && side = CursorSide.Left then "-> "
             else "   "
         let writeWithColor color (text: string) =
             Console.ForegroundColor <- color
@@ -257,7 +168,7 @@ module RepoStatus =
                 fileBucket.filesInBucket
                 |% fun fileInBucket ->
                     let isSelected = selectedFile.IsSome && selectedFile.Value = fileInBucket
-                    if isSelected then 
+                    if isSelected && side = CursorSide.Right then 
                         "->" 
                     else 
                         "  " 
