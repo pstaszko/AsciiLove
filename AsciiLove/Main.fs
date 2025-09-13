@@ -8,7 +8,6 @@ open Atomic.Operators
 open ArtDomain
 open Domain
 
-open MQTTnet.Client
 open Spectre.Console
 open Spectre.Console.Json
 //Op: End
