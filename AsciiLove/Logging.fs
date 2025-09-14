@@ -5,13 +5,14 @@ open Serilog
 
 [<AutoOpen>]
 module Logging =
+    open Serilog.Formatting.Display
     let mutable private logger: ILogger = null
     let SetLogger l = logger <- l
 
     let getLogger (lc: Config.LoggingConfig) =
         LoggerConfiguration()
             .MinimumLevel.Debug()
-            .WriteTo.RollingFile(Serilog.Formatting.Display.MessageTemplateTextFormatter("{Timestamp:yy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}", null), lc.LogFilePath)
+            .WriteTo.RollingFile(MessageTemplateTextFormatter("{Timestamp:yy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}", null), lc.LogFilePath)
             //.WriteTo.Console(Events.LogEventLevel.Information)
             .CreateLogger()
 
