@@ -21,7 +21,13 @@ type ``MVU Tests``() =
     let SetDirtyTrue (model: Model) = model.SetDirty true
     let stepAdapt model (maybeChar: char option) =
         let maybeConsoleKeyInfo = maybeChar |> Option.map ^ fun a -> new ConsoleKeyInfo(a, ConsoleKey.Escape, false, false, false)
-        Program.step (fun _ _ -> ()) maybeConsoleKeyInfo model
+        let io = 
+            { 
+                IO.IOActions.ExploreInFileExplorer = fun _ -> failwith "Not expected to be called"
+                IO.IOActions.ExploreDirectoryInFileExplorer = fun _ -> failwith "Not expected to be called"
+                IO.IOActions.RunGitCommand = fun _ -> failwith "Not expected to be called"
+            }
+        Program.step io (fun _ _ -> ()) maybeConsoleKeyInfo model
     [<Fact>]
     member _.``No messages, no changes``() =
         let init = AsciiLove.Main.init

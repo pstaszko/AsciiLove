@@ -51,8 +51,7 @@ module GitStatusScreen =
         Console_WriteLine(m.SelectedGitStatus </> _.Path <!> "NoRprt")
         Console_WriteLine(m.SelectedFile <!> "NoFile")
 
-
-    let update (model: Model) (msg: GitStatusMsg) =
+    let update (io: IO.IOActions) (model: Model) (msg: GitStatusMsg) =
         let log x = ()
         let gm = model.GitInfo
         let getVisibleFiles () =
@@ -109,7 +108,7 @@ module GitStatusScreen =
             model
         | SetGitStatus newGitStatuses ->
             let newGitStatuses = newGitStatuses |> List.sortBy _.RepoPath.ToLower()
-            
+
             if gm.GitStatuses = newGitStatuses then
                 if model.Screen = GitStatus then
                     match newGitStatuses with
@@ -196,7 +195,7 @@ module GitStatusScreen =
                             |> swap List.item gm.GitStatuses
                             |> Some
                         with _ -> None
-                
+
                 newSelectedRepo |> SetSelectedGitRepoStatus |> GitStatusMsg |> post
                 model
             | CursorSide.Right ->
@@ -237,7 +236,6 @@ module GitStatusScreen =
                 |> post
 
                 model
-
         | HorizSelectionChange mode ->
             model.GitInfo.SelectedFile
             |> function
@@ -251,6 +249,36 @@ module GitStatusScreen =
 
             { model.GitInfo with Side = mode }
             |> model.SetGitInfo
+        | IOAction action ->
+            match action with
+            | Explore ->
+                model.GitInfo.Side
+                |> function
+                | CursorSide.Left ->
+                    model.GitInfo.SelectedGitStatus
+                    <|> fun selectedStatus ->
+                            selectedStatus.Path
+                            |> DI
+                            |> io.ExploreDirectoryInFileExplorer
+                | CursorSide.Right ->
+                    model.GitInfo.SelectedFile
+                    <|> fun selectedFile ->
+                            Path.Combine(model.GitInfo.SelectedGitStatus.Value.Path, selectedFile)
+                            |> FI
+                            |> io.ExploreInFileExplorer
+            model
+        | ActOnSelectedFile action ->
+            model.GitInfo.SelectedFile
+            <|> fun selectedFile ->
+                    match action with
+                    //| OpenInFileExplorer ->
+                    //    Path.Combine(model.GitInfo.SelectedGitStatus.Value.Path, selectedFile)
+                    //    |> FI
+                    //    |> io.ExploreInFileExplorer
+                    | StageFile -> io.RunGitCommand $"add \"{selectedFile}\""
+                    //| UnstageFile -> io.RunGitCommand $"reset HEAD \"{selectedFile}\""
+                    | _ -> failwith "Not implemented"
+            model
 
     let hotkeys =
         [
@@ -258,6 +286,9 @@ module GitStatusScreen =
             //Op: IndentOnRegex \|
             Hotkey.Create("UpArrow"              , "Up"              , VerticalSelectionChange.Up   |> GitStatusMsg.VerticalSelectionChange |> Msg.GitStatusMsg)
             Hotkey.Create("DownArrow"            , "Down"            , VerticalSelectionChange.Down |> GitStatusMsg.VerticalSelectionChange |> Msg.GitStatusMsg)
+            Hotkey.Create("E"                    , "Explore"         , IOAction.Explore             |> IOAction                             |> Msg.GitStatusMsg)
+            Hotkey.Create("S"                    , "Stage"           , StageFile                    |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
+            Hotkey.Create("U"                    , "Unstage"         , UnstageFile                  |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
             Hotkey.Create2(ConsoleKey.Enter      , "Enter"           , RememberDir                  |> ActOnSelectedReport                  |> Msg.GitStatusMsg)
             Hotkey.Create2(ConsoleKey.RightArrow , "Navigate Files"  , CursorSide.Right             |> HorizSelectionChange                 |> Msg.GitStatusMsg)
             Hotkey.Create2(ConsoleKey.LeftArrow  , "Navigate Repos"  , CursorSide.Left              |> HorizSelectionChange                 |> Msg.GitStatusMsg)

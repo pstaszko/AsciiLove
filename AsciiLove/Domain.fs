@@ -248,7 +248,7 @@ module Domain =
             this.GitStatusMeta
             |> Map.tryFind repoPath
             <!> GitRepoStatusReportMeta.Default
-            
+
     type HotkeyWrapBehavior =
         | Wrap
         | NoWrap
@@ -262,7 +262,7 @@ module Domain =
         //            else
         //                existingReport
         //    { this with GitStatuses = n }
-    
+
     type ScreenHouseKeeping =
         {
             DirtyScreen: bool
@@ -282,7 +282,7 @@ module Domain =
             Window: ScreenHouseKeeping
             GitInfo: GitInfo
         }
-        
+
         member this.SetDirty newValue = { this with Window = { this.Window with DirtyScreen = newValue } }
         member this.SetShowModel newValue = { this with Window = { this.Window with ShowModel = newValue } }
         member this.SetGitInfo x = { this with GitInfo = x }
@@ -350,15 +350,29 @@ module Messages =
         | ExpandAll
         | CollapseAll
 
+    type FileAction =
+        | OpenInEditor
+        //| OpenInFileExplorer
+        | StageFile
+        | UnstageFile
+
+    type IOAction =
+        | Explore
+
     type GitStatusMsg =
-        | SetGitStatus of GitRepoStatusReport list
-        | VerticalSelectionChange of VerticalSelectionChange
+        //Op: Auto
+        //Op: Sort
+        | ActOnAllReports of AllReportsAction
+        | ActOnSelectedReport of GitRepoStatusReportAction
+        | IOAction of IOAction
+        | ActOnSelectedFile of FileAction
         | HorizSelectionChange of CursorSide
+        | SetGitStatus of GitRepoStatusReport list
+        | SetSelectedFile of string option
         | SetSelectedGitRepoStatus of GitRepoStatusReport option
         | TrySetSelectedGitRepoStatus of string
-        | ActOnSelectedReport of GitRepoStatusReportAction
-        | ActOnAllReports of AllReportsAction
-        | SetSelectedFile of string option
+        | VerticalSelectionChange of VerticalSelectionChange
+        //Op: End
 
     type SettingsMsg =
         | IncIncrementStep

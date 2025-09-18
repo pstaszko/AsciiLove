@@ -1,7 +1,49 @@
 namespace AsciiLove
 open System
+module IO =
+    open System.IO
+    type IOActions =
+        {
+            ExploreInFileExplorer: FileInfo -> unit
+            ExploreDirectoryInFileExplorer: DirectoryInfo -> unit
+            RunGitCommand: string -> unit
+        }
+
+    let RunGitCommand (cmd: string) =
+        let psi = new System.Diagnostics.ProcessStartInfo("git", cmd)
+        psi.RedirectStandardOutput <- true
+        psi.RedirectStandardError <- true
+        psi.UseShellExecute <- false
+        let processx = System.Diagnostics.Process.Start(psi)
+        let output = processx.StandardOutput.ReadToEnd()
+        let error = processx.StandardError.ReadToEnd()
+        processx.WaitForExit() |> ignore
+        if processx.ExitCode = 0 then
+            Logging.logInfo $"Git command succeeded: git {cmd}\n{output}"
+        else
+            Logging.logWarn $"Git command failed (exit code {processx.ExitCode}): git {cmd}\n{error}"
+
+    type ThingsYouCanDoToADirectory =
+        static member ExploreInFileExplorer (path: DirectoryInfo) =
+            if path.Exists then
+                let args = $"\"{path.FullName}\""
+                System.Diagnostics.Process.Start("explorer.exe", args) |> ignore
+            else
+                Logging.logWarn $"Directory does not exist: {path.FullName}"
+
+    type ThingsYouCanDoToAFile =
+        static member ExploreInFileExplorer (path: FileInfo) =
+            if path.Exists then
+                let args = $"/e,/select,\"{path.FullName}\""
+                System.Diagnostics.Process.Start("explorer.exe", args) |> ignore
+            else
+                Logging.logWarn $"File does not exist: {path.FullName}"
+
 [<AutoOpen>]
 module Global =
+    type FI = System.IO.FileInfo
+    type DI = System.IO.DirectoryInfo
+
     let swap fn arg1 arg2 = fn arg2 arg1
 
     let CLEAR (reason: string) =

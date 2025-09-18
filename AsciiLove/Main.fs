@@ -47,10 +47,10 @@ module Main =
         | Stop
 
     module Program =
-        let update raiseMessage (model: Model) (msg: Msg) : Model =
+        let update io raiseMessage (model: Model) (msg: Msg) : Model =
             match msg with
             //Op: Auto
-            | GitStatusMsg msg -> Screens.GitStatusScreen.update model msg
+            | GitStatusMsg msg -> Screens.GitStatusScreen.update io model msg
             | GalleryMsg msg   -> Screens.GalleryScreen.update model msg
             | MainMsg msg      -> Screens.MainScreen.update model msg
             | SettingsMsg msg  -> Screens.SettingsScreen.update model msg
@@ -202,7 +202,7 @@ module Main =
                     AnsiConsole.Write(panel)
             model
 
-        let step raiseMessage (keyOpt: ConsoleKeyInfo option) (prevModel: Model): Model * LoopBehavior =
+        let step io raiseMessage (keyOpt: ConsoleKeyInfo option) (prevModel: Model): Model * LoopBehavior =
             keyOpt
             <|> fun key -> handleKey prevModel key
 
@@ -211,7 +211,7 @@ module Main =
             let mutable msgOpt : Msg = Unchecked.defaultof<Msg>
 
             while messageQueue.TryDequeue &msgOpt do
-                let updated = update raiseMessage newModel msgOpt
+                let updated = update io raiseMessage newModel msgOpt
                 newModel <- updated
                 match msgOpt with
                 | GlobalMsg Quit -> loopBehavior <- LoopBehavior.Stop
@@ -219,11 +219,11 @@ module Main =
 
             newModel, loopBehavior
 
-        let loop serialize (modelUpdateMessageCallbacks: ModelUpdateMessageCallback list) raiseMessage forceView (prevModel: Model) =
+        let loop io serialize (modelUpdateMessageCallbacks: ModelUpdateMessageCallback list) raiseMessage forceView (prevModel: Model) =
             let rec go forceView (prevModel: Model) =
                 let keyOpt = ConsoleUtils.maybeGetKey()
 
-                let newModel, continueLoop = step raiseMessage keyOpt prevModel
+                let newModel, continueLoop = step io raiseMessage keyOpt prevModel
 
                 let wasDirty = newModel.Window.DirtyScreen
 
@@ -305,5 +305,12 @@ module Main =
 
         let serialize (o: obj) = Newtonsoft.Json.JsonConvert.SerializeObject(o, Newtonsoft.Json.Formatting.Indented)
 
-        Program.loop serialize modelUpdateMessages mqtt.PublishMessage true init
+        let io =
+            {
+                IO.IOActions.ExploreInFileExplorer = IO.ThingsYouCanDoToAFile.ExploreInFileExplorer
+                //IO.IOActions.OpenInDefaultApp = IO.ThingsYouCanDoToAFile.Open
+                IO.IOActions.ExploreDirectoryInFileExplorer = IO.ThingsYouCanDoToADirectory.ExploreInFileExplorer
+                IO.IOActions.RunGitCommand = IO.RunGitCommand
+            }
+        Program.loop io serialize modelUpdateMessages mqtt.PublishMessage true init
         0
