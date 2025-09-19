@@ -96,3 +96,12 @@ module GitDomain =
     let isGitRepository (path: string) : bool =
         let gitDir = System.IO.Path.Combine(path, ".git")
         System.IO.Directory.Exists(gitDir)
+        
+    let assertIsGitRepoDir(path: string) : unit =
+        if System.IO.Directory.Exists(path) then
+            if isGitRepository path then
+                ()
+            else
+                failwith $"The directory '{path}' is not a git repository."
+        else
+            raise (System.IO.DirectoryNotFoundException($"The directory '{path}' does not exist."))

@@ -11,7 +11,7 @@ module IO =
             RunGitCommand: RepoDirectory -> string -> unit
             SerializeIndented: obj -> string
         }
-
+        
     let RunGitCommand (workingDirectory: RepoDirectory) (cmd: string) =
         let psi = new System.Diagnostics.ProcessStartInfo("git", cmd)
         psi.RedirectStandardOutput <- true

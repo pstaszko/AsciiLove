@@ -10,6 +10,7 @@ open Domain
 
 open Spectre.Console
 open Spectre.Console.Json
+open IO
 //Op: End
 module Main =
     let init =
@@ -300,15 +301,6 @@ module Main =
                 go "SelectedGitStatusPath" ^ fun x -> x.GitInfo.SelectedGitStatus </> _.Path <!> ""
             ]
 
-        let assertIsGitRepoDir(path: string) : unit =
-            if System.IO.Directory.Exists(path) then
-                if GitDomain.isGitRepository path then
-                    ()
-                else
-                    failwith $"The directory '{path}' is not a git repository."
-            else
-                raise (System.IO.DirectoryNotFoundException($"The directory '{path}' does not exist."))
-
         args
         |? fun x -> x.Length > 0 //remove empty args
         |+| fun x ->
@@ -322,13 +314,13 @@ module Main =
         let io =
             {
                 //Op: Auto
-                IO.IOActions.ExploreInFileExplorer          = IO.ThingsYouCanDoToAFile.ExploreInFileExplorer
-                //IO.IOActions.OpenInDefaultApp             = IO.ThingsYouCanDoToAFile.Open
-                IO.IOActions.ExploreDirectoryInFileExplorer = IO.ThingsYouCanDoToADirectory.ExploreInFileExplorer
-                IO.IOActions.RunGitCommand                  = IO.RunGitCommand
-                IO.IOActions.OpenInEditor                   = IO.ThingsYouCanDoToAFile.OpenInEditor cfg.EditorPath
-                IO.IOActions.SerializeIndented              = serialize
+                IOActions.ExploreInFileExplorer          = ThingsYouCanDoToAFile.ExploreInFileExplorer
+                IOActions.ExploreDirectoryInFileExplorer = ThingsYouCanDoToADirectory.ExploreInFileExplorer
+                IOActions.RunGitCommand                  = RunGitCommand
+                IOActions.OpenInEditor                   = ThingsYouCanDoToAFile.OpenInEditor cfg.EditorPath
+                IOActions.SerializeIndented              = serialize
                 //Op: End
             }
+
         Program.loop io modelUpdateMessages mqtt.PublishMessage true init
         0
