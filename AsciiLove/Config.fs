@@ -14,6 +14,7 @@ module Config =
                 .AddJsonFile("config.json")
                 .Build()
         {|
-            config = config
+            //config = config
+            EditorPath = config.["EditorPath"]
             LoggingConfig = {LogFilePath = config.["LogFilePath"]}
         |}

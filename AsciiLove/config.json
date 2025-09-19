@@ -1,3 +1,4 @@
 {
-  "LogFilePath": "c:/dev/logs/AsciiLove.log"
+  "LogFilePath": "c:/dev/logs/AsciiLove.log",
+  "EditorPath": "C:\\Users\\Paul\\scoop\\shims\\notepad++.exe"
 }

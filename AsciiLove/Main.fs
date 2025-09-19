@@ -260,10 +260,11 @@ module Main =
             let lc = cfg.LoggingConfig
             getLogger lc
         SetLogger log
+        cfg
 
     [<EntryPoint>]
     let main args =
-        configLogger()
+        let cfg = configLogger()
 
         Serilog.Debugging.SelfLog.Enable(fun msg -> Console.WriteLine(msg); logDebug msg)
 
@@ -320,10 +321,14 @@ module Main =
 
         let io =
             {
-                IO.IOActions.ExploreInFileExplorer = IO.ThingsYouCanDoToAFile.ExploreInFileExplorer
-                //IO.IOActions.OpenInDefaultApp = IO.ThingsYouCanDoToAFile.Open
+                //Op: Auto
+                IO.IOActions.ExploreInFileExplorer          = IO.ThingsYouCanDoToAFile.ExploreInFileExplorer
+                //IO.IOActions.OpenInDefaultApp             = IO.ThingsYouCanDoToAFile.Open
                 IO.IOActions.ExploreDirectoryInFileExplorer = IO.ThingsYouCanDoToADirectory.ExploreInFileExplorer
-                IO.IOActions.RunGitCommand = IO.RunGitCommand
+                IO.IOActions.RunGitCommand                  = IO.RunGitCommand
+                IO.IOActions.OpenInEditor                   = IO.ThingsYouCanDoToAFile.OpenInEditor cfg.EditorPath
+                IO.IOActions.SerializeIndented              = serialize
+                //Op: End
             }
         Program.loop io serialize modelUpdateMessages mqtt.PublishMessage true init
         0

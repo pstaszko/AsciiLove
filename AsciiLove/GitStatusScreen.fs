@@ -11,16 +11,15 @@ open Atomic.Operators
 open AsciiLove
 //Op: End
 module GitStatusScreen =
+    let mutable reTriggerMonitor = fun () -> ()
     let startMonitor dirs =
         let check() =
             dirs
-            |> List.map RepoStatus.getGitStatusFromCacheStrong
-            |> List.map
+            |> List.choose
                 ^ fun x ->
+                    let x = RepoStatus.getGitStatusFromCacheStrong x
                     let (np, dirt) = getDirtFromStatus x
                     if np then Some (dirt,x) else None
-            |> List.filter Option.isSome
-            |> List.map _.Value
             |> function
             | [] ->
                 [] |> SetGitStatus |> GitStatusMsg |> post
@@ -30,6 +29,11 @@ module GitStatusScreen =
         let t = new System.Timers.Timer(2000.0)
         t.Elapsed.Add(fun _ -> check())
         t.Start()
+        reTriggerMonitor <-
+            fun () ->
+                t.Stop()
+                check()
+                t.Start()
 
     let view (m: Model) =
         ConsoleUtils.setSize 12
@@ -270,14 +274,19 @@ module GitStatusScreen =
         | ActOnSelectedFile action ->
             model.GitInfo.SelectedFile
             <|> fun selectedFile ->
+                    let git = io.RunGitCommand <| DI model.GitInfo.SelectedGitStatus.Value.Path
                     match action with
                     //| OpenInFileExplorer ->
                     //    Path.Combine(model.GitInfo.SelectedGitStatus.Value.Path, selectedFile)
                     //    |> FI
                     //    |> io.ExploreInFileExplorer
-                    | StageFile -> io.RunGitCommand $"add \"{selectedFile}\""
-                    //| UnstageFile -> io.RunGitCommand $"reset HEAD \"{selectedFile}\""
-                    | _ -> failwith "Not implemented"
+                    | StageFile -> git $"add \"{selectedFile}\""; RecheckGitStatus |> GitStatusMsg |> post
+                    | UnstageFile -> git $"reset HEAD \"{selectedFile}\""; RecheckGitStatus |> GitStatusMsg |> post
+                    | OpenInEditor -> io.OpenInEditor(FI <| Path.Combine(model.GitInfo.SelectedGitStatus.Value.Path, selectedFile))
+                    //| _ -> failwith "Not implemented"
+            model
+        | RecheckGitStatus ->
+            reTriggerMonitor()
             model
 
     let hotkeys =
@@ -288,6 +297,7 @@ module GitStatusScreen =
             Hotkey.Create("DownArrow"            , "Down"            , VerticalSelectionChange.Down |> GitStatusMsg.VerticalSelectionChange |> Msg.GitStatusMsg)
             Hotkey.Create("E"                    , "Explore"         , IOAction.Explore             |> IOAction                             |> Msg.GitStatusMsg)
             Hotkey.Create("S"                    , "Stage"           , StageFile                    |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
+            Hotkey.Create("N"                    , "Open in Editor"  , OpenInEditor                 |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
             Hotkey.Create("U"                    , "Unstage"         , UnstageFile                  |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
             Hotkey.Create2(ConsoleKey.Enter      , "Enter"           , RememberDir                  |> ActOnSelectedReport                  |> Msg.GitStatusMsg)
             Hotkey.Create2(ConsoleKey.RightArrow , "Navigate Files"  , CursorSide.Right             |> HorizSelectionChange                 |> Msg.GitStatusMsg)

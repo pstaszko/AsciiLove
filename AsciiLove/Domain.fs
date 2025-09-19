@@ -362,6 +362,7 @@ module Messages =
     type GitStatusMsg =
         //Op: Auto
         //Op: Sort
+        | RecheckGitStatus
         | ActOnAllReports of AllReportsAction
         | ActOnSelectedReport of GitRepoStatusReportAction
         | IOAction of IOAction
