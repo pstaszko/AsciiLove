@@ -92,3 +92,7 @@ module GitDomain =
             }
         member this.GetGitStatusMetaKey () : GitStatusMetaKey =
             { Path = this.Path }
+
+    let isGitRepository (path: string) : bool =
+        let gitDir = System.IO.Path.Combine(path, ".git")
+        System.IO.Directory.Exists(gitDir)

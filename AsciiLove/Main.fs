@@ -50,15 +50,13 @@ module Main =
         let update io raiseMessage (model: Model) (msg: Msg) : Model =
             match msg with
             //Op: Auto
-            | GitStatusMsg msg -> Screens.GitStatusScreen.update io model msg
-            | GalleryMsg msg   -> Screens.GalleryScreen.update model msg
-            | MainMsg msg      -> Screens.MainScreen.update model msg
-            | SettingsMsg msg  -> Screens.SettingsScreen.update model msg
-            | HelpMsg msg      -> Screens.HelpScreen.update model msg
+            | GitStatusMsg msg    -> Screens.GitStatusScreen.update io model msg
+            | GalleryMsg msg      -> Screens.GalleryScreen.update model msg
+            | MainMsg msg         -> Screens.MainScreen.update model msg
+            | SettingsMsg msg     -> Screens.SettingsScreen.update model msg
+            | HelpMsg msg         -> Screens.HelpScreen.update model msg
+            | RaiseMessage (t, m) -> raiseMessage t m; model
             //Op: End
-            | RaiseMessage (t, m) ->
-                raiseMessage t m
-                model
             | GlobalMsg msg ->
                 match msg with
                 //Op: Auto
@@ -100,11 +98,13 @@ module Main =
 
         let handleKey (model: Model) (key: ConsoleKeyInfo) : unit =
             match model.Screen with
-            | Main -> Screens.MainScreen.hotkeys
+            //Op: Auto
+            | Main      -> Screens.MainScreen.hotkeys
             | GitStatus -> Screens.GitStatusScreen.hotkeys
-            | Settings -> Screens.SettingsScreen.hotkeys
-            | Help -> Screens.HelpScreen.hotkeys
-            | Gallery -> Screens.GalleryScreen.hotkeys
+            | Settings  -> Screens.SettingsScreen.hotkeys
+            | Help      -> Screens.HelpScreen.hotkeys
+            | Gallery   -> Screens.GalleryScreen.hotkeys
+            //Op: End
             |> fun hotkeys ->
                 hotkeys @ globalHotkeys
                 |> List.tryFind
@@ -114,11 +114,13 @@ module Main =
         let view (model: Model) : Model =
             if model.Window.ShowModel then CLEAR "Reset screen every tick if the model is being shown"
             match model.Screen with
-            | Main -> Screens.MainScreen.view model
+            //Op: Auto
+            | Main      -> Screens.MainScreen.view model
             | GitStatus -> Screens.GitStatusScreen.view model
-            | Settings -> Screens.SettingsScreen.view model
-            | Help -> Screens.HelpScreen.view model
-            | Gallery -> Screens.GalleryScreen.view model
+            | Settings  -> Screens.SettingsScreen.view model
+            | Help      -> Screens.HelpScreen.view model
+            | Gallery   -> Screens.GalleryScreen.view model
+            //Op: End
 
             let model =
                 if model.ShowHotkeys && model.Screen <> Gallery then
@@ -163,7 +165,6 @@ module Main =
                             hotkeys
                             |> printHotkeys
 
-                    //Console_WriteLine("")
                     Console_WriteLine("")
                     Console_WriteLine("[Global Hotkeys]")
 
@@ -298,8 +299,20 @@ module Main =
                 go "SelectedGitStatusPath" ^ fun x -> x.GitInfo.SelectedGitStatus </> _.Path <!> ""
             ]
 
+        let assertIsGitRepoDir(path: string) : unit =
+            if System.IO.Directory.Exists(path) then
+                if GitDomain.isGitRepository path then
+                    ()
+                else
+                    failwith $"The directory '{path}' is not a git repository."
+            else
+                raise (System.IO.DirectoryNotFoundException($"The directory '{path}' does not exist."))
+
         args
         |? fun x -> x.Length > 0 //remove empty args
+        |+| fun x ->
+            assertIsGitRepoDir x
+            x
         |> Seq.toList
         |> Screens.GitStatusScreen.startMonitor
 
