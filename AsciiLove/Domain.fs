@@ -362,12 +362,12 @@ module Messages =
     type GitStatusMsg =
         //Op: Auto
         //Op: Sort
-        | RecheckGitStatus
         | ActOnAllReports of AllReportsAction
-        | ActOnSelectedReport of GitRepoStatusReportAction
-        | IOAction of IOAction
         | ActOnSelectedFile of FileAction
+        | ActOnSelectedReport of GitRepoStatusReportAction
         | HorizSelectionChange of CursorSide
+        | IOAction of IOAction
+        | RecheckGitStatus
         | SetGitStatus of GitRepoStatusReport list
         | SetSelectedFile of string option
         | SetSelectedGitRepoStatus of GitRepoStatusReport option

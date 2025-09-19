@@ -220,7 +220,7 @@ module Main =
 
             newModel, loopBehavior
 
-        let loop io serialize (modelUpdateMessageCallbacks: ModelUpdateMessageCallback list) raiseMessage forceView (prevModel: Model) =
+        let loop io (modelUpdateMessageCallbacks: ModelUpdateMessageCallback list) raiseMessage forceView (prevModel: Model) =
             let rec go forceView (prevModel: Model) =
                 let keyOpt = ConsoleUtils.maybeGetKey()
 
@@ -239,7 +239,7 @@ module Main =
                     |% fun mum ->
                         mum.Callback newModel
                         |> fun x ->
-                            serialize x
+                            io.SerializeIndented x
                             |> raiseMessage mum.Name
 
                 let newModel =
@@ -330,5 +330,5 @@ module Main =
                 IO.IOActions.SerializeIndented              = serialize
                 //Op: End
             }
-        Program.loop io serialize modelUpdateMessages mqtt.PublishMessage true init
+        Program.loop io modelUpdateMessages mqtt.PublishMessage true init
         0
