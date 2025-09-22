@@ -296,17 +296,18 @@ module Main =
             timer.Start()
 
         let modelUpdateMessages =
-            let go name fn = { Name = name; Callback = fn }
+            let createCallback name fn = { Name = $"AsciiLove/{name}"; Callback = fn }
             [
-                go "SelectedGitStatusPath" ^ fun x -> x.GitInfo.SelectedGitStatus </> _.Path <!> ""
+                createCallback "SelectedFile" ^ (fun x -> x.GitInfo.SelectedFile <!> "" |> fun x -> x)
+                createCallback "SelectedGitStatusPath" ^ (fun x -> x.GitInfo.SelectedGitStatus </> _.Path <!> "")
             ]
 
-        args
-        |? fun x -> x.Length > 0 //remove empty args
-        |+| fun x ->
-            assertIsGitRepoDir x
-            x
-        |> Seq.toList
+        let dirs = args
+        dirs
+        |? fun dir -> dir.Length > 0 //remove empty args
+        |+| fun dir ->
+            assertIsGitRepoDir dir
+            dir
         |> Screens.GitStatusScreen.startMonitor
 
         let serialize (o: obj) = Newtonsoft.Json.JsonConvert.SerializeObject(o, Newtonsoft.Json.Formatting.Indented)
