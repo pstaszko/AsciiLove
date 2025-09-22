@@ -72,6 +72,13 @@ module Global =
 
     let Console_WriteLine (txt: string) = Console.WriteLine(txt)
 
+    let Console_WriteLineFlushed (txt: string) = 
+        let l = Console.CursorLeft
+        let t = Console.CursorTop
+        Console.WriteLine(new String(' ', Console.BufferWidth))
+        Console.SetCursorPosition(l, t)
+        Console.WriteLine(txt)
+
     module ConsoleUtils =
         let maybeGetKey() =
             if Console.KeyAvailable then

@@ -51,9 +51,9 @@ module GitStatusScreen =
                 printGitRepoStatusReport m.Side repoIsSelected m.SelectedFile gitStatus meta dirt
                 Console_WriteLine("")
 
-        Console_WriteLine(m.Side.ToString())
-        Console_WriteLine(m.SelectedGitStatus </> _.Path <!> "NoRprt")
-        Console_WriteLine(m.SelectedFile <!> "NoFile")
+        Console_WriteLineFlushed(m.Side.ToString())
+        Console_WriteLineFlushed(m.SelectedGitStatus </> _.Path <!> "NoRprt")
+        Console_WriteLineFlushed(m.SelectedFile <!> "NoFile")
 
     let update (io: IO.IOActions) (model: Model) (msg: GitStatusMsg) =
         let log x = ()
