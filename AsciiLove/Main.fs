@@ -93,9 +93,11 @@ module Main =
             ]
 
         let isKeyAMatch (stringVersion: string) (mods: string) (consoleKey: ConsoleKeyInfo) =
-            if consoleKey.KeyChar = char 27 && stringVersion = "Esc" then true
+            if consoleKey.KeyChar = char 27 && stringVersion = "Esc" then 
+                true
             else
                 stringVersion.[0] = consoleKey.KeyChar || stringVersion = consoleKey.Key.ToString()
+                |> fun x -> x && mods = string consoleKey.Modifiers
 
         let handleKey (model: Model) (key: ConsoleKeyInfo) : unit =
             match model.Screen with
@@ -125,7 +127,13 @@ module Main =
 
             let model =
                 if model.ShowHotkeys && model.Screen <> Gallery then
-                    let formatHotkey (hotkey: Hotkey) = $"[{hotkey.Key}] {hotkey.Description}"
+                    let formatHotkey (hotkey: Hotkey) =
+                        let modifier = 
+                            hotkey.Mods.Trim() 
+                            |> function
+                            | "" -> ""
+                            | x -> $"{x} "
+                        $"[{modifier}{hotkey.Key}] {hotkey.Description}"
                     let printHotkey = formatHotkey >> Console_WriteLine
 
                     let printHotkeys (hotkeys: Hotkey list) : HotkeyWrapBehavior option =
