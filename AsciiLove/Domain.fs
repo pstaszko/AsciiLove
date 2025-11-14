@@ -262,12 +262,20 @@ module Domain =
         //            else
         //                existingReport
         //    { this with GitStatuses = n }
-
+        
+    type HotkeyWork =
+        {
+            LinesToPrint: string list
+            WrapBehavior: HotkeyWrapBehavior
+        }
+    
     type ScreenHouseKeeping =
         {
             DirtyScreen: bool
             LastHotkeyWrap_Specific: HotkeyWrapBehavior option
             LastHotkeyWrap_Global: HotkeyWrapBehavior option
+            HotkeyText_Specific: string list
+            HotkeyText_Global: string list
             ShowModel: bool
         }
 

@@ -23,6 +23,7 @@ module HotkeyDisplay =
                     
     let printHotkey = formatHotkey >> Console_WriteLine
 
+    [<ObsoleteAttribute>]
     let printHotkeys (hotkeys: Hotkey list) : HotkeyWrapBehavior option =
         match hotkeys with
         | [] -> None
@@ -46,8 +47,50 @@ module HotkeyDisplay =
                 HotkeyWrapBehavior.Wrap
                 |> Some
 
+    let getHotkeyWork (hotkeys: Hotkey list) : HotkeyWork option =
+        match hotkeys with
+        | [] -> None
+        | hotkeys ->
+            let wide =
+                hotkeys
+                |+ formatHotkey
+                |> String.concat " "
+            
+            if wide.Length > Console.WindowWidth then
+                {
+                    LinesToPrint =
+                        hotkeys
+                        |+| formatHotkey
+                    WrapBehavior = HotkeyWrapBehavior.NoWrap
+                }
+            else
+                {
+                    LinesToPrint = [wide]
+                    WrapBehavior = HotkeyWrapBehavior.NoWrap
+                }
+            |> Some
+
 module Wrapping = 
-    let getCurrentWrapBehavior_Specific model =
+    //[<ObsoleteAttribute>]
+    //let getCurrentWrapBehavior_Specific (model: Model) : HotkeyWrapBehavior option =
+    //    match model.Screen with
+    //    //Op: Auto
+    //    | Gallery   -> Screens.GalleryScreen.hotkeys
+    //    | GitStatus -> Screens.GitStatusScreen.hotkeys model.GitInfo
+    //    | Main      -> Screens.MainScreen.hotkeys
+    //    | Settings  -> Screens.SettingsScreen.hotkeys
+    //    | Help      -> Screens.HelpScreen.hotkeys
+    //    //Op: End
+    //    |> function
+    //    | [] -> None
+    //    | hotkeys ->
+    //        Console_WriteLine("")
+    //        Console_WriteLine("")
+    //        Console_WriteLine($"[%s{string model.Screen} Screen Hotkeys]")
+    //        hotkeys
+    //        |> HotkeyDisplay.printHotkeys
+            
+    let getCurrentWrapBehavior_Specific_New (model: Model) : HotkeyWork option =
         match model.Screen with
         //Op: Auto
         | Gallery   -> Screens.GalleryScreen.hotkeys
@@ -59,11 +102,17 @@ module Wrapping =
         |> function
         | [] -> None
         | hotkeys ->
-            Console_WriteLine("")
-            Console_WriteLine("")
-            Console_WriteLine($"[%s{string model.Screen} Screen Hotkeys]")
             hotkeys
-            |> HotkeyDisplay.printHotkeys
+            |> HotkeyDisplay.getHotkeyWork
+            </> fun x -> 
+                { x with
+                    LinesToPrint =
+                        [
+                            ""
+                            ""
+                            $"[%s{string model.Screen} Screen Hotkeys]"
+                        ] @ x.LinesToPrint
+                }
 
 module Main =
     let init =
@@ -83,6 +132,8 @@ module Main =
                     DirtyScreen = false
                     LastHotkeyWrap_Global = None
                     LastHotkeyWrap_Specific = None
+                    HotkeyText_Global = []
+                    HotkeyText_Specific = []
                     ShowModel = false
                 }
             ArtSettings = ArtDomain.ArtSettings.Empty
@@ -187,24 +238,46 @@ module Main =
                     Console_WriteLine("")
                     Console_WriteLine("[Global Hotkeys]")
 
-                    let currentWrapBehavior_Global =
-                        globalHotkeys
-                        |> HotkeyDisplay.printHotkeys
+                    let hotkeyWork_global = globalHotkeys |> HotkeyDisplay.getHotkeyWork
+                    let hotkeyWork_specific = Wrapping.getCurrentWrapBehavior_Specific_New model
+
+                    hotkeyWork_global
+                    <|> fun x ->
+                        x.LinesToPrint
+                        |% Console_WriteLine
+
+                    hotkeyWork_specific
+                    <|> fun y ->
+                        y.LinesToPrint
+                        |% Console_WriteLine
+
+                    let hotkeyText_global = hotkeyWork_global </> _.LinesToPrint <!> []
+
+                    let hotkeyText_specific = hotkeyWork_specific </> _.LinesToPrint <!> []
+
+                    let currentWrapBehavior_Global = hotkeyWork_global </> _.WrapBehavior
                     
-                    let currentWrapBehavior_Specific = Wrapping.getCurrentWrapBehavior_Specific model
+                    let currentWrapBehavior_Specific = hotkeyWork_specific </> _.WrapBehavior
                     
                     let hotkeyWrapBehaviorChanged =
                         model.Window.LastHotkeyWrap_Global <> currentWrapBehavior_Global ||
                         model.Window.LastHotkeyWrap_Specific <> currentWrapBehavior_Specific
+                    
+                    
+                    let hotkeyTextChanged =
+                        model.Window.HotkeyText_Global <> hotkeyText_global ||
+                        model.Window.HotkeyText_Specific <> hotkeyText_specific
 
                     { model with
                         Window =
                             { model.Window with
                                 LastHotkeyWrap_Global = currentWrapBehavior_Global
                                 LastHotkeyWrap_Specific = currentWrapBehavior_Specific
+                                HotkeyText_Global = hotkeyText_global
+                                HotkeyText_Specific = hotkeyText_specific
                             }
                     }
-                    |> fun x -> x.SetDirty (model.Window.DirtyScreen || hotkeyWrapBehaviorChanged)
+                    |> fun x -> x.SetDirty (model.Window.DirtyScreen || hotkeyWrapBehaviorChanged || hotkeyTextChanged)
                 else model
 
             if model.Window.ShowModel then
