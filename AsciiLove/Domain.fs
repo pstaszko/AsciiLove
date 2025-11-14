@@ -344,6 +344,7 @@ module Messages =
     type GitRepoStatusReportAction =
         | RememberDir
         | ToggleExpand
+        | DiffFolder
         | GitPush
 
     type AllReportsAction =
@@ -354,6 +355,7 @@ module Messages =
         | OpenInEditor
         //| OpenInFileExplorer
         | StageFile
+        | DiffFile
         | UnstageFile
 
     type IOAction =

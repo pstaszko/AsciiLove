@@ -12,6 +12,59 @@ open Spectre.Console
 open Spectre.Console.Json
 open IO
 //Op: End
+module HotkeyDisplay =
+    let formatHotkey (hotkey: Hotkey) =
+        let modifier = 
+            hotkey.Mods.Trim() 
+            |> function
+            | "" -> ""
+            | x -> $"{x} "
+        $"[{modifier}{hotkey.Key}] {hotkey.Description}"
+                    
+    let printHotkey = formatHotkey >> Console_WriteLine
+
+    let printHotkeys (hotkeys: Hotkey list) : HotkeyWrapBehavior option =
+        match hotkeys with
+        | [] -> None
+        | hotkeys ->
+            let wide =
+                hotkeys
+                |+ formatHotkey
+                |> String.concat " "
+            
+            if wide.Length > Console.WindowWidth then
+                hotkeys
+                |+ formatHotkey
+                |% Console_WriteLine
+
+                HotkeyWrapBehavior.NoWrap
+                |> Some
+            else
+                wide
+                |> Console_WriteLine
+
+                HotkeyWrapBehavior.Wrap
+                |> Some
+
+module Wrapping = 
+    let getCurrentWrapBehavior_Specific model =
+        match model.Screen with
+        //Op: Auto
+        | Gallery   -> Screens.GalleryScreen.hotkeys
+        | GitStatus -> Screens.GitStatusScreen.hotkeys model.GitInfo
+        | Main      -> Screens.MainScreen.hotkeys
+        | Settings  -> Screens.SettingsScreen.hotkeys
+        | Help      -> Screens.HelpScreen.hotkeys
+        //Op: End
+        |> function
+        | [] -> None
+        | hotkeys ->
+            Console_WriteLine("")
+            Console_WriteLine("")
+            Console_WriteLine($"[%s{string model.Screen} Screen Hotkeys]")
+            hotkeys
+            |> HotkeyDisplay.printHotkeys
+
 module Main =
     let init =
         {
@@ -93,6 +146,7 @@ module Main =
             ]
 
         let isKeyAMatch (stringVersion: string) (mods: string) (consoleKey: ConsoleKeyInfo) =
+            let mods = if mods = "" then "None" else mods
             if consoleKey.KeyChar = char 27 && stringVersion = "Esc" then 
                 true
             else
@@ -103,16 +157,19 @@ module Main =
             match model.Screen with
             //Op: Auto
             | Main      -> Screens.MainScreen.hotkeys
-            | GitStatus -> Screens.GitStatusScreen.hotkeys
+            | GitStatus -> Screens.GitStatusScreen.hotkeys model.GitInfo
             | Settings  -> Screens.SettingsScreen.hotkeys
             | Help      -> Screens.HelpScreen.hotkeys
             | Gallery   -> Screens.GalleryScreen.hotkeys
             //Op: End
+            //|?| fun x -> x.Description.Contains "Down"
             |> fun hotkeys ->
                 hotkeys @ globalHotkeys
                 |> List.tryFind
                     ^ fun hotkey -> isKeyAMatch hotkey.Key hotkey.Mods key
-            |> Option.iter (fun hotkey -> post (hotkey.Msg))
+            |> function
+            | Some hotkey -> post (hotkey.Msg)
+            | None -> ()
 
         let view (model: Model) : Model =
             if model.Window.ShowModel then CLEAR "Reset screen every tick if the model is being shown"
@@ -127,60 +184,15 @@ module Main =
 
             let model =
                 if model.ShowHotkeys && model.Screen <> Gallery then
-                    let formatHotkey (hotkey: Hotkey) =
-                        let modifier = 
-                            hotkey.Mods.Trim() 
-                            |> function
-                            | "" -> ""
-                            | x -> $"{x} "
-                        $"[{modifier}{hotkey.Key}] {hotkey.Description}"
-                    let printHotkey = formatHotkey >> Console_WriteLine
-
-                    let printHotkeys (hotkeys: Hotkey list) : HotkeyWrapBehavior option =
-                        match hotkeys with
-                        | [] -> None
-                        | hotkeys ->
-                            let wide =
-                                hotkeys
-                                |> List.map formatHotkey
-                                |> String.concat " "
-                            if wide.Length > Console.WindowWidth then
-                                hotkeys |> List.iter printHotkey
-
-                                HotkeyWrapBehavior.NoWrap
-                                |> Some
-                            else
-                                wide
-                                |> Console_WriteLine
-
-                                HotkeyWrapBehavior.Wrap
-                                |> Some
-
-                    let currentWrapBehavior_Specific =
-                        match model.Screen with
-                        //Op: Auto
-                        | Gallery   -> Screens.GalleryScreen.hotkeys
-                        | GitStatus -> Screens.GitStatusScreen.hotkeys
-                        | Main      -> Screens.MainScreen.hotkeys
-                        | Settings  -> Screens.SettingsScreen.hotkeys
-                        | Help      -> Screens.HelpScreen.hotkeys
-                        //Op: End
-                        |> function
-                        | [] -> None
-                        | hotkeys ->
-                            Console_WriteLine("")
-                            Console_WriteLine("")
-                            Console_WriteLine($"[{model.Screen} Screen Hotkeys]")
-                            hotkeys
-                            |> printHotkeys
-
                     Console_WriteLine("")
                     Console_WriteLine("[Global Hotkeys]")
 
                     let currentWrapBehavior_Global =
                         globalHotkeys
-                        |> printHotkeys
-
+                        |> HotkeyDisplay.printHotkeys
+                    
+                    let currentWrapBehavior_Specific = Wrapping.getCurrentWrapBehavior_Specific model
+                    
                     let hotkeyWrapBehaviorChanged =
                         model.Window.LastHotkeyWrap_Global <> currentWrapBehavior_Global ||
                         model.Window.LastHotkeyWrap_Specific <> currentWrapBehavior_Specific

@@ -51,9 +51,9 @@ module GitStatusScreen =
                 printGitRepoStatusReport m.Side repoIsSelected m.SelectedFile gitStatus meta dirt
                 Console_WriteLine("")
 
-        Console_WriteLineFlushed(m.Side.ToString())
-        Console_WriteLineFlushed(m.SelectedGitStatus </> _.Path <!> "NoRprt")
-        Console_WriteLineFlushed(m.SelectedFile <!> "NoFile")
+        //Console_WriteLineFlushed(m.Side.ToString())
+        //Console_WriteLineFlushed(m.SelectedGitStatus </> _.Path <!> "NoRprt")
+        //Console_WriteLineFlushed(m.SelectedFile <!> "NoFile")
 
     let update (io: IO.IOActions) (model: Model) (msg: GitStatusMsg) =
         let log x = ()
@@ -83,6 +83,12 @@ module GitStatusScreen =
             gm.SelectedGitStatus
             </> fun (selectedStatus: GitRepoStatusReport) ->
                     match action with
+                    | DiffFolder ->
+                        let psi = new System.Diagnostics.ProcessStartInfo("git", "difftool")
+                        psi.WorkingDirectory <- selectedStatus.RepoPath
+                        psi.UseShellExecute <- true
+                        System.Diagnostics.Process.Start(psi) |> ignore
+                        model
                     | GitPush ->
                         let psi = new System.Diagnostics.ProcessStartInfo("git", "push")
                         psi.WorkingDirectory <- selectedStatus.RepoPath
@@ -281,6 +287,7 @@ module GitStatusScreen =
                     //    |> FI
                     //    |> io.ExploreInFileExplorer
                     | StageFile -> git $"add \"{selectedFile}\""; RecheckGitStatus |> GitStatusMsg |> post
+                    | DiffFile -> git $"difftool -- {selectedFile}"; RecheckGitStatus |> GitStatusMsg |> post
                     | UnstageFile -> git $"reset HEAD \"{selectedFile}\""; RecheckGitStatus |> GitStatusMsg |> post
                     | OpenInEditor -> io.OpenInEditor(FI <| Path.Combine(model.GitInfo.SelectedGitStatus.Value.Path, selectedFile))
                     //| _ -> failwith "Not implemented"
@@ -289,22 +296,26 @@ module GitStatusScreen =
             reTriggerMonitor()
             model
 
-    let hotkeys =
+    let hotkeys (gitModel: GitInfo) =
+        let isRight = gitModel.Side = CursorSide.Right
+        let isLeft = not isRight
         [
             //Op: Auto
             //Op: IndentOnRegex \|
-            Hotkey.Create("UpArrow"              , "Up"              , VerticalSelectionChange.Up   |> GitStatusMsg.VerticalSelectionChange |> Msg.GitStatusMsg)
-            Hotkey.Create("DownArrow"            , "Down"            , VerticalSelectionChange.Down |> GitStatusMsg.VerticalSelectionChange |> Msg.GitStatusMsg)
-            Hotkey.Create("E"                    , "Explore"         , IOAction.Explore             |> IOAction                             |> Msg.GitStatusMsg)
-            Hotkey.Create("S"                    , "Stage"           , StageFile                    |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
-            Hotkey.Create("N"                    , "Open in Editor"  , OpenInEditor                 |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
-            Hotkey.Create("U"                    , "Unstage"         , UnstageFile                  |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
-            Hotkey.Create2(ConsoleKey.Enter      , "Enter"           , RememberDir                  |> ActOnSelectedReport                  |> Msg.GitStatusMsg)
-            Hotkey.Create2(ConsoleKey.RightArrow , "Navigate Files"  , CursorSide.Right             |> HorizSelectionChange                 |> Msg.GitStatusMsg)
-            Hotkey.Create2(ConsoleKey.LeftArrow  , "Navigate Repos"  , CursorSide.Left              |> HorizSelectionChange                 |> Msg.GitStatusMsg)
-            Hotkey.Create2(ConsoleKey.Spacebar   , "Expand/Collapse" , ToggleExpand                 |> ActOnSelectedReport                  |> Msg.GitStatusMsg)
-            Hotkey.Create2(ConsoleKey.Add        , "Expand All"      , ExpandAll                    |> ActOnAllReports                      |> Msg.GitStatusMsg)
-            Hotkey.Create2(ConsoleKey.Subtract   , "Collapse All"    , CollapseAll                  |> ActOnAllReports                      |> Msg.GitStatusMsg)
-            Hotkey.Create2(ConsoleKey.UpArrow    , "Push"            , GitPush                      |> ActOnSelectedReport                  |> Msg.GitStatusMsg) |> setMods "Alt"
+            Hotkey.Create("UpArrow"                     , "Up"              , VerticalSelectionChange.Up   |> GitStatusMsg.VerticalSelectionChange |> Msg.GitStatusMsg)
+            Hotkey.Create("DownArrow"                   , "Down"            , VerticalSelectionChange.Down |> GitStatusMsg.VerticalSelectionChange |> Msg.GitStatusMsg)
+            Hotkey.Create("E"                           , "Explore"         , IOAction.Explore             |> IOAction                             |> Msg.GitStatusMsg)
+            Hotkey.Create2(ConsoleKey.S                 , "Stage"           , StageFile                    |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
+            if isRight then Hotkey.Create2(ConsoleKey.D , "Diff"            , DiffFile                     |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
+            if isLeft then Hotkey.Create2(ConsoleKey.N  , "Open in Editor"  , OpenInEditor                 |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
+            if isRight then Hotkey.Create2(ConsoleKey.N , "Diff Folder"     , DiffFolder                   |> ActOnSelectedReport                  |> Msg.GitStatusMsg)
+            Hotkey.Create("U"                           , "Unstage"         , UnstageFile                  |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
+            Hotkey.Create2(ConsoleKey.Enter             , "Enter"           , RememberDir                  |> ActOnSelectedReport                  |> Msg.GitStatusMsg)
+            Hotkey.Create2(ConsoleKey.RightArrow        , "Navigate Files"  , CursorSide.Right             |> HorizSelectionChange                 |> Msg.GitStatusMsg)
+            Hotkey.Create2(ConsoleKey.LeftArrow         , "Navigate Repos"  , CursorSide.Left              |> HorizSelectionChange                 |> Msg.GitStatusMsg)
+            Hotkey.Create2(ConsoleKey.Spacebar          , "Expand/Collapse" , ToggleExpand                 |> ActOnSelectedReport                  |> Msg.GitStatusMsg)
+            Hotkey.Create2(ConsoleKey.Add               , "Expand All"      , ExpandAll                    |> ActOnAllReports                      |> Msg.GitStatusMsg)
+            Hotkey.Create2(ConsoleKey.Subtract          , "Collapse All"    , CollapseAll                  |> ActOnAllReports                      |> Msg.GitStatusMsg)
+            Hotkey.Create2(ConsoleKey.UpArrow           , "Push"            , GitPush                      |> ActOnSelectedReport                  |> Msg.GitStatusMsg) |> setMods "Alt"
             //Op: End
         ]

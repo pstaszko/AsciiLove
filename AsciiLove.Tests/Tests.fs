@@ -25,6 +25,8 @@ type ``MVU Tests``() =
             { 
                 IO.IOActions.ExploreInFileExplorer = fun _ -> failwith "Not expected to be called"
                 IO.IOActions.ExploreDirectoryInFileExplorer = fun _ -> failwith "Not expected to be called"
+                IO.IOActions.OpenInEditor = fun _ -> failwith "Not expected to be called"
+                IO.IOActions.SerializeIndented = fun _ -> failwith "Not expected to be called"
                 IO.IOActions.RunGitCommand = fun _ -> failwith "Not expected to be called"
             }
         Program.step io (fun _ _ -> ()) maybeConsoleKeyInfo model
