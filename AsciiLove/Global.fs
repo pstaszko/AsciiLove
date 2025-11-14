@@ -2,6 +2,7 @@ namespace AsciiLove
 open System
 module IO =
     open System.IO
+    let noop x = ()
     type RepoDirectory = DirectoryInfo
     type IOActions =
         {
@@ -11,7 +12,7 @@ module IO =
             RunGitCommand: RepoDirectory -> string -> unit
             SerializeIndented: obj -> string
         }
-        
+
     let RunGitCommand (workingDirectory: RepoDirectory) (cmd: string) =
         let psi = new System.Diagnostics.ProcessStartInfo("git", cmd)
         psi.RedirectStandardOutput <- true
@@ -72,7 +73,7 @@ module Global =
 
     let Console_WriteLine (txt: string) = Console.WriteLine(txt)
 
-    let Console_WriteLineFlushed (txt: string) = 
+    let Console_WriteLineFlushed (txt: string) =
         let l = Console.CursorLeft
         let t = Console.CursorTop
         Console.WriteLine(new String(' ', Console.BufferWidth))
