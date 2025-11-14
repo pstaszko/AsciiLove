@@ -262,13 +262,13 @@ module Domain =
         //            else
         //                existingReport
         //    { this with GitStatuses = n }
-        
+
     type HotkeyWork =
         {
             LinesToPrint: string list
             WrapBehavior: HotkeyWrapBehavior
         }
-    
+
     type ScreenHouseKeeping =
         {
             DirtyScreen: bool

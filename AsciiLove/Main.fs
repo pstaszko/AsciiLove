@@ -14,13 +14,13 @@ open IO
 //Op: End
 module HotkeyDisplay =
     let formatHotkey (hotkey: Hotkey) =
-        let modifier = 
-            hotkey.Mods.Trim() 
+        let modifier =
+            hotkey.Mods.Trim()
             |> function
             | "" -> ""
             | x -> $"{x} "
         $"[{modifier}{hotkey.Key}] {hotkey.Description}"
-                    
+
     let printHotkey = formatHotkey >> Console_WriteLine
 
     [<ObsoleteAttribute>]
@@ -32,7 +32,7 @@ module HotkeyDisplay =
                 hotkeys
                 |+ formatHotkey
                 |> String.concat " "
-            
+
             if wide.Length > Console.WindowWidth then
                 hotkeys
                 |+ formatHotkey
@@ -55,7 +55,7 @@ module HotkeyDisplay =
                 hotkeys
                 |+ formatHotkey
                 |> String.concat " "
-            
+
             if wide.Length > Console.WindowWidth then
                 {
                     LinesToPrint =
@@ -70,7 +70,7 @@ module HotkeyDisplay =
                 }
             |> Some
 
-module Wrapping = 
+module Wrapping =
     //[<ObsoleteAttribute>]
     //let getCurrentWrapBehavior_Specific (model: Model) : HotkeyWrapBehavior option =
     //    match model.Screen with
@@ -89,7 +89,7 @@ module Wrapping =
     //        Console_WriteLine($"[%s{string model.Screen} Screen Hotkeys]")
     //        hotkeys
     //        |> HotkeyDisplay.printHotkeys
-            
+
     let getCurrentWrapBehavior_Specific_New (model: Model) : HotkeyWork option =
         match model.Screen with
         //Op: Auto
@@ -104,7 +104,7 @@ module Wrapping =
         | hotkeys ->
             hotkeys
             |> HotkeyDisplay.getHotkeyWork
-            </> fun x -> 
+            </> fun x ->
                 { x with
                     LinesToPrint =
                         [
@@ -198,7 +198,7 @@ module Main =
 
         let isKeyAMatch (stringVersion: string) (mods: string) (consoleKey: ConsoleKeyInfo) =
             let mods = if mods = "" then "None" else mods
-            if consoleKey.KeyChar = char 27 && stringVersion = "Esc" then 
+            if consoleKey.KeyChar = char 27 && stringVersion = "Esc" then
                 true
             else
                 stringVersion.[0] = consoleKey.KeyChar || stringVersion = consoleKey.Key.ToString()
@@ -256,14 +256,14 @@ module Main =
                     let hotkeyText_specific = hotkeyWork_specific </> _.LinesToPrint <!> []
 
                     let currentWrapBehavior_Global = hotkeyWork_global </> _.WrapBehavior
-                    
+
                     let currentWrapBehavior_Specific = hotkeyWork_specific </> _.WrapBehavior
-                    
+
                     let hotkeyWrapBehaviorChanged =
                         model.Window.LastHotkeyWrap_Global <> currentWrapBehavior_Global ||
                         model.Window.LastHotkeyWrap_Specific <> currentWrapBehavior_Specific
-                    
-                    
+
+
                     let hotkeyTextChanged =
                         model.Window.HotkeyText_Global <> hotkeyText_global ||
                         model.Window.HotkeyText_Specific <> hotkeyText_specific
@@ -361,7 +361,6 @@ module Main =
         let cfg = configLogger()
 
         Serilog.Debugging.SelfLog.Enable(fun msg -> Console.WriteLine(msg); logDebug msg)
-
         ConsoleUtils.setSize 12
 
         let mqtt = FMQTT.LocalBroker.ConnectToLocal()
