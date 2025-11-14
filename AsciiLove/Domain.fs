@@ -233,6 +233,12 @@ module Domain =
         | Right
         | Left
 
+    type SelectableFile =
+        {
+            RepoPath: string
+            FilePath: string
+        }
+
     type GitInfo =
         {
             GitStatuses: GitRepoStatusReport list

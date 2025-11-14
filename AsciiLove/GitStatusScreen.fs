@@ -54,16 +54,17 @@ module GitStatusScreen =
         //Console_WriteLineFlushed(m.Side.ToString())
         //Console_WriteLineFlushed(m.SelectedGitStatus </> _.Path <!> "NoRprt")
         //Console_WriteLineFlushed(m.SelectedFile <!> "NoFile")
-
+    
     let update (io: IO.IOActions) (model: Model) (msg: GitStatusMsg) =
         let log x = ()
         let gm = model.GitInfo
-        let getVisibleFiles () =
+        let getVisibleFiles () : SelectableFile list =
             gm.GitStatuses
             |?| (fun x -> gm.GetMetaOrDefault (x.GetGitStatusMetaKey()) |> _.Visibility = Visibility.Visible)
             |> List.collect ^ fun x ->
                 x.FileBuckets
                 |> List.collect _.Files
+                |+| fun xx -> { RepoPath = x.RepoPath; FilePath = xx }
 
         match msg with
         | ActOnAllReports action ->
@@ -209,7 +210,7 @@ module GitStatusScreen =
                 newSelectedRepo |> SetSelectedGitRepoStatus |> GitStatusMsg |> post
                 model
             | CursorSide.Right ->
-                let visibleFiles = getVisibleFiles()
+                let visibleFiles = getVisibleFiles() |+| _.FilePath
                 match mode with
                 | VerticalSelectionChange.Up ->
                     gm.SelectedFile
@@ -253,6 +254,7 @@ module GitStatusScreen =
             | None ->
                 getVisibleFiles()
                 |> List.tryHead
+                </> _.FilePath
                 |> SetSelectedFile
                 |> GitStatusMsg
                 |> post
@@ -307,8 +309,8 @@ module GitStatusScreen =
             Hotkey.Create("E"                           , "Explore"         , IOAction.Explore             |> IOAction                             |> Msg.GitStatusMsg)
             Hotkey.Create2(ConsoleKey.S                 , "Stage"           , StageFile                    |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
             if isRight then Hotkey.Create2(ConsoleKey.D , "Diff"            , DiffFile                     |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
-            if isLeft then Hotkey.Create2(ConsoleKey.N  , "Open in Editor"  , OpenInEditor                 |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
-            if isRight then Hotkey.Create2(ConsoleKey.N , "Diff Folder"     , DiffFolder                   |> ActOnSelectedReport                  |> Msg.GitStatusMsg)
+            if isRight then Hotkey.Create2(ConsoleKey.N , "Open in Editor"  , OpenInEditor                 |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
+            if isLeft then Hotkey.Create2(ConsoleKey.N  , "Diff Folder"     , DiffFolder                   |> ActOnSelectedReport                  |> Msg.GitStatusMsg)
             Hotkey.Create("U"                           , "Unstage"         , UnstageFile                  |> ActOnSelectedFile                    |> Msg.GitStatusMsg)
             Hotkey.Create2(ConsoleKey.Enter             , "Enter"           , RememberDir                  |> ActOnSelectedReport                  |> Msg.GitStatusMsg)
             Hotkey.Create2(ConsoleKey.RightArrow        , "Navigate Files"  , CursorSide.Right             |> HorizSelectionChange                 |> Msg.GitStatusMsg)
