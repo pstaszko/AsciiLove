@@ -238,6 +238,9 @@ module Domain =
             RepoPath: string
             FilePath: string
         }
+        member this.FullPath =
+            if this.RepoPath.Contains(".git") then ()
+            System.IO.Path.Combine(this.RepoPath, this.FilePath)
 
     type GitInfo =
         {
@@ -245,7 +248,7 @@ module Domain =
             SelectedGitStatus: GitRepoStatusReport option
             GitStatusMeta: Map<GitStatusMetaKey, GitRepoStatusReportMeta>
             Side: CursorSide
-            SelectedFile: string option
+            SelectedFile: SelectableFile option
         }
         member this.SetGitStatusMeta x = { this with GitStatusMeta = x }
         member this.SetSelectedGitStatus x = { this with SelectedGitStatus = x }
@@ -385,7 +388,7 @@ module Messages =
         | IOAction of IOAction
         | RecheckGitStatus
         | SetGitStatus of GitRepoStatusReport list
-        | SetSelectedFile of string option
+        | SetSelectedFile of SelectableFile option
         | SetSelectedGitRepoStatus of GitRepoStatusReport option
         | TrySetSelectedGitRepoStatus of string
         | VerticalSelectionChange of VerticalSelectionChange

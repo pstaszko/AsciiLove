@@ -54,7 +54,7 @@ module GitStatusScreen =
         //Console_WriteLineFlushed(m.Side.ToString())
         //Console_WriteLineFlushed(m.SelectedGitStatus </> _.Path <!> "NoRprt")
         //Console_WriteLineFlushed(m.SelectedFile <!> "NoFile")
-    
+
     let update (io: IO.IOActions) (model: Model) (msg: GitStatusMsg) =
         let log x = ()
         let gm = model.GitInfo
@@ -217,7 +217,7 @@ module GitStatusScreen =
                     |> function
                     | Some currentFile ->
                         visibleFiles
-                        |> List.tryFindIndex ((=) currentFile)
+                        |> List.tryFindIndex ((=) currentFile.FilePath)
                         <!> visibleFiles.Length - 1
                         |> fun x -> x - 1
                         |> swap List.tryItem visibleFiles
@@ -232,7 +232,7 @@ module GitStatusScreen =
                     |> function
                     | Some currentFile ->
                         visibleFiles
-                        |> List.tryFindIndex ((=) currentFile)
+                        |> List.tryFindIndex ((=) currentFile.FilePath)
                         <!> -1
                         |> fun x -> x + 1
                         |> swap List.tryItem visibleFiles
@@ -242,9 +242,16 @@ module GitStatusScreen =
                     | None ->
                         visibleFiles.[0]
                         |> Some
-                |> SetSelectedFile
-                |> GitStatusMsg
-                |> post
+                |> id
+                <|> fun x ->
+                    {
+                        SelectableFile.RepoPath = gm.SelectedGitStatus.Value.RepoPath
+                        SelectableFile.FilePath = x
+                    }
+                    |> Some
+                    |> SetSelectedFile
+                    |> GitStatusMsg
+                    |> post
 
                 model
         | HorizSelectionChange mode ->
@@ -255,6 +262,11 @@ module GitStatusScreen =
                 getVisibleFiles()
                 |> List.tryHead
                 </> _.FilePath
+                </> fun x ->
+                    {
+                        SelectableFile.RepoPath = gm.SelectedGitStatus.Value.RepoPath
+                        SelectableFile.FilePath = x
+                    }
                 |> SetSelectedFile
                 |> GitStatusMsg
                 |> post
@@ -275,7 +287,7 @@ module GitStatusScreen =
                 | CursorSide.Right ->
                     model.GitInfo.SelectedFile
                     <|> fun selectedFile ->
-                            Path.Combine(model.GitInfo.SelectedGitStatus.Value.Path, selectedFile)
+                            selectedFile.FullPath
                             |> FI
                             |> io.ExploreInFileExplorer
             model
@@ -291,7 +303,7 @@ module GitStatusScreen =
                     | StageFile -> git $"add \"{selectedFile}\""; RecheckGitStatus |> GitStatusMsg |> post
                     | DiffFile -> git $"difftool -- {selectedFile}"; RecheckGitStatus |> GitStatusMsg |> post
                     | UnstageFile -> git $"reset HEAD \"{selectedFile}\""; RecheckGitStatus |> GitStatusMsg |> post
-                    | OpenInEditor -> io.OpenInEditor(FI <| Path.Combine(model.GitInfo.SelectedGitStatus.Value.Path, selectedFile))
+                    | OpenInEditor -> io.OpenInEditor(FI selectedFile.FullPath)
                     //| _ -> failwith "Not implemented"
             model
         | RecheckGitStatus ->

@@ -390,7 +390,7 @@ module Main =
         let modelUpdateMessages =
             let createCallback name fn = { Name = $"AsciiLove/{name}"; Callback = fn }
             [
-                createCallback "SelectedFile" ^ (fun x -> x.GitInfo.SelectedFile <!> "" |> fun x -> x)
+                createCallback "SelectedFile" ^ (fun x -> x.GitInfo.SelectedFile </> _.FullPath <!> "" |> fun x -> x)
                 createCallback "SelectedGitStatusPath" ^ (fun x -> x.GitInfo.SelectedGitStatus </> _.Path <!> "")
             ]
 

@@ -12,7 +12,7 @@ module RepoStatus =
             Newtonsoft.Json.JsonConvert.DeserializeObject<'t>(json)
             |> Some
         with _ -> None
-    
+
     let getGitStatusFromCacheStrong (path: string) =
         getGitStatusFromCache true path
         |> fun x ->
@@ -103,7 +103,7 @@ module RepoStatus =
 
         (dirtyFiles > 0 || aheadBehindStashDirtCount > 0), dirt
 
-    let printGitRepoStatusReport (side: CursorSide) (repoSelected: bool) (selectedFile: string option) (s: GitRepoStatusReport) (meta: GitRepoStatusReportMeta) (dirt: string list) =
+    let printGitRepoStatusReport (side: CursorSide) (repoSelected: bool) (selectedFile: SelectableFile option) (s: GitRepoStatusReport) (meta: GitRepoStatusReportMeta) (dirt: string list) =
         let indentation = "    "
         let repoSelected =
             if repoSelected && side = CursorSide.Left then "-> "
@@ -139,7 +139,7 @@ module RepoStatus =
                 writeLine ""
                 fileBucket.filesInBucket
                 |% fun fileInBucket ->
-                    let isSelected = selectedFile.IsSome && selectedFile.Value = fileInBucket
+                    let isSelected = selectedFile.IsSome && selectedFile.Value.FilePath = fileInBucket
                     if isSelected && side = CursorSide.Right then
                         "->"
                     else
