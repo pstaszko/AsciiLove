@@ -239,7 +239,6 @@ module Domain =
             FilePath: string
         }
         member this.FullPath =
-            if this.RepoPath.Contains(".git") then ()
             System.IO.Path.Combine(this.RepoPath, this.FilePath)
 
     type GitInfo =

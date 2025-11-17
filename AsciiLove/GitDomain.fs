@@ -40,6 +40,7 @@ module GitDomain =
     type GitRepoStatusReport = {
         Version: int
         Path: string
+        [<Obsolete>]
         RepoPath: string
         WorkingDir: string
         State: string

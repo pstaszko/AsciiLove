@@ -64,7 +64,7 @@ module GitStatusScreen =
             |> List.collect ^ fun x ->
                 x.FileBuckets
                 |> List.collect _.Files
-                |+| fun xx -> { RepoPath = x.RepoPath; FilePath = xx }
+                |+| fun xx -> { RepoPath = x.Path; FilePath = xx }
 
         match msg with
         | ActOnAllReports action ->
@@ -86,13 +86,13 @@ module GitStatusScreen =
                     match action with
                     | DiffFolder ->
                         let psi = new System.Diagnostics.ProcessStartInfo("git", "difftool")
-                        psi.WorkingDirectory <- selectedStatus.RepoPath
+                        psi.WorkingDirectory <- selectedStatus.Path
                         psi.UseShellExecute <- true
                         System.Diagnostics.Process.Start(psi) |> ignore
                         model
                     | GitPush ->
                         let psi = new System.Diagnostics.ProcessStartInfo("git", "push")
-                        psi.WorkingDirectory <- selectedStatus.RepoPath
+                        psi.WorkingDirectory <- selectedStatus.Path
                         psi.UseShellExecute <- true
                         System.Diagnostics.Process.Start(psi) |> ignore
                         model
@@ -105,7 +105,7 @@ module GitStatusScreen =
                             {
                                 meta with Visibility = if meta.Visibility = Visibility.Collapsed then Visibility.Visible else Visibility.Collapsed
                             }
-                        CLEAR $"Toggling expand for {selectedStatus.RepoPath} to {newMeta.Visibility}"
+                        CLEAR $"Toggling expand for {selectedStatus.Path} to {newMeta.Visibility}"
                         model.GitInfo.GitStatusMeta
                         |> Map.add (selectedStatus.GetGitStatusMetaKey()) newMeta
                         |> model.GitInfo.SetGitStatusMeta
@@ -118,7 +118,7 @@ module GitStatusScreen =
 
             model
         | SetGitStatus newGitStatuses ->
-            let newGitStatuses = newGitStatuses |> List.sortBy _.RepoPath.ToLower()
+            let newGitStatuses = newGitStatuses |> List.sortBy _.Path.ToLower()
 
             if gm.GitStatuses = newGitStatuses then
                 if model.Screen = GitStatus then
@@ -245,7 +245,7 @@ module GitStatusScreen =
                 |> id
                 <|> fun x ->
                     {
-                        SelectableFile.RepoPath = gm.SelectedGitStatus.Value.RepoPath
+                        SelectableFile.RepoPath = gm.SelectedGitStatus.Value.Path
                         SelectableFile.FilePath = x
                     }
                     |> Some
@@ -264,7 +264,7 @@ module GitStatusScreen =
                 </> _.FilePath
                 </> fun x ->
                     {
-                        SelectableFile.RepoPath = gm.SelectedGitStatus.Value.RepoPath
+                        SelectableFile.RepoPath = gm.SelectedGitStatus.Value.Path
                         SelectableFile.FilePath = x
                     }
                 |> SetSelectedFile
