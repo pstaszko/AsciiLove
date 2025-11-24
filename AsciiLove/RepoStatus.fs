@@ -15,9 +15,9 @@ module RepoStatus =
 
     let getGitStatusFromCacheStrong (path: string) =
         getGitStatusFromCache true path
-        |> fun x ->
-            let getArray (name: string) =
-                x.[name] :?> JsonArray
+        |> fun jsonNode ->
+            let getArray (name: string) : SelectableFile list =
+                jsonNode.[name] :?> JsonArray
                 |> Seq.map
                     ^ fun node ->
                         node
@@ -26,15 +26,22 @@ module RepoStatus =
                         | _ -> failwithf "Expected JsonValue, got %A" node
                         |> fun x -> x
                 |> Seq.toList
+                |+| fun x ->
+                    {
+                        RepoPath = path
+                        FilePath = x
+                    }
+
             let v =
-                    let xx = x.["Version"]
+                    let xx = jsonNode.["Version"]
                     try
                         xx.ToString() |> int
                     with failed ->
                         BREAK xx
                         0
+
             let s =
-                let ss = x.["Stashes"]
+                let ss = jsonNode.["Stashes"]
                 ss.AsArray()
                 |> Seq.map
                     ^ fun x ->
@@ -42,18 +49,19 @@ module RepoStatus =
                         | FitsType (o: StashEntry) -> o
                         | _ -> failwithf "Expected StashEntry, got %A" x
                 |> Seq.toList
+
             { GitDomain.GitRepoStatusReport.Empty with
                 Version           = v
                 //Op: Auto
-                Path            = x.["Path"].ToString()
-                RepoPath        = x.["RepoPath"].ToString()
-                WorkingDir      = x.["WorkingDir"].ToString()
-                State           = x.["State"].ToString()
-                Branch          = x.["Branch"].ToString()
-                Upstream        = x.["Upstream"].ToString()
-                UpstreamGone    = x.["UpstreamGone"].GetValue<bool>()
-                AheadBy         = x.["AheadBy"].GetValue<int>()
-                BehindBy        = x.["BehindBy"].GetValue<int>()
+                Path            = jsonNode.["Path"].ToString()
+                RepoPath        = jsonNode.["RepoPath"].ToString()
+                WorkingDir      = jsonNode.["WorkingDir"].ToString()
+                State           = jsonNode.["State"].ToString()
+                Branch          = jsonNode.["Branch"].ToString()
+                Upstream        = jsonNode.["Upstream"].ToString()
+                UpstreamGone    = jsonNode.["UpstreamGone"].GetValue<bool>()
+                AheadBy         = jsonNode.["AheadBy"].GetValue<int>()
+                BehindBy        = jsonNode.["BehindBy"].GetValue<int>()
                 Stashes         = s
                 //Op: End
                 FileBuckets =
@@ -94,7 +102,7 @@ module RepoStatus =
             ]
             |> fun generalDirt ->
                 s.FileBuckets
-                |> Seq.choose ^ fun x -> if x.Files.Length > 0 then $"{x.Name}: %i{x.Files.Length}" |> Some  else None
+                |> Seq.choose ^ fun x -> if x.Files.Length > 0 then $"%s{x.Name}: %i{x.Files.Length}" |> Some  else None
                 |> Seq.toList
                 |> fun specificTypesOfDirt ->
                     generalDirt @ specificTypesOfDirt
@@ -103,7 +111,7 @@ module RepoStatus =
 
         (dirtyFiles > 0 || aheadBehindStashDirtCount > 0), dirt
 
-    let printGitRepoStatusReport (side: CursorSide) (repoSelected: bool) (selectedFile: SelectableFile option) (s: GitRepoStatusReport) (meta: GitRepoStatusReportMeta) (dirt: string list) =
+    let printGitRepoStatusReport selectedFileSymbol (side: CursorSide) (repoSelected: bool) (selectedFile: SelectableFile option) (s: GitRepoStatusReport) (meta: GitRepoStatusReportMeta) (dirt: string list) =
         let indentation = "    "
         let repoSelected =
             if repoSelected && side = CursorSide.Left then "-> "
@@ -117,10 +125,10 @@ module RepoStatus =
             Console.Write indentation
 
         let dirtText = String.Join(", ", dirt)
-        writeWithColor ConsoleColor.White $"{repoSelected}"
-        writeWithColor ConsoleColor.Green $@"{s.Path}\ "
-        writeWithColor ConsoleColor.White $@"[{s.Branch}] "
-        writeWithColor ConsoleColor.Blue $"[{dirtText}]"
+        writeWithColor ConsoleColor.White $"%s{repoSelected}"
+        writeWithColor ConsoleColor.Green $@"%s{s.Path}\ "
+        writeWithColor ConsoleColor.White $@"[%s{s.Branch}] "
+        writeWithColor ConsoleColor.Blue $"[%s{dirtText}]"
         writeLine ""
 
         let filesBucketsToNote =
@@ -135,18 +143,21 @@ module RepoStatus =
             filesBucketsToNote
             |?! _.filesInBucket.IsEmpty
             |% fun fileBucket ->
-                writeWithColor ConsoleColor.Yellow $" {fileBucket.name}: {fileBucket.filesInBucket.Length} files"
+                writeWithColor ConsoleColor.Yellow $" %s{fileBucket.name}: %i{fileBucket.filesInBucket.Length} files"
                 writeLine ""
                 fileBucket.filesInBucket
                 |% fun fileInBucket ->
-                    let isSelected = selectedFile.IsSome && selectedFile.Value.FilePath = fileInBucket
+                    let isSelected = selectedFile.IsSome && selectedFile.Value.FullPath = fileInBucket.FullPath
                     if isSelected && side = CursorSide.Right then
-                        "->"
+                        selectedFileSymbol
                     else
-                        "  "
+                        new String(' ', selectedFileSymbol.Length)
+                        //"  "
                     |> writeWithColor ConsoleColor.White
 
-                    writeWithColor fileBucket.consoleColor $"  {fileInBucket}"
+                    writeWithColor fileBucket.consoleColor $"  %s{fileInBucket.FilePath}"
                     writeLine ""
+
+        //selectedFile </> _.FullPath <!> "NoSelectedFile" |> writeWithColor ConsoleColor.Cyan
 
         Console.ResetColor()

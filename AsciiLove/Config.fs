@@ -16,5 +16,6 @@ module Config =
         {|
             //config = config
             EditorPath = config.["EditorPath"]
+            SelectedFileSymbol = config.["SelectedFileSymbol"]
             LoggingConfig = {LogFilePath = config.["LogFilePath"]}
         |}

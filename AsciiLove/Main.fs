@@ -222,12 +222,12 @@ module Main =
             | Some hotkey -> post (hotkey.Msg)
             | None -> ()
 
-        let view (model: Model) : Model =
+        let view displayConfig (model: Model) : Model =
             if model.Window.ShowModel then CLEAR "Reset screen every tick if the model is being shown"
             match model.Screen with
             //Op: Auto
             | Main      -> Screens.MainScreen.view model
-            | GitStatus -> Screens.GitStatusScreen.view model
+            | GitStatus -> Screens.GitStatusScreen.view displayConfig model
             | Settings  -> Screens.SettingsScreen.view model
             | Help      -> Screens.HelpScreen.view model
             | Gallery   -> Screens.GalleryScreen.view model
@@ -314,7 +314,7 @@ module Main =
 
             newModel, loopBehavior
 
-        let loop io (modelUpdateMessageCallbacks: ModelUpdateMessageCallback list) raiseMessage forceView (prevModel: Model) =
+        let loop displayConfig io (modelUpdateMessageCallbacks: ModelUpdateMessageCallback list) raiseMessage forceView (prevModel: Model) =
             let rec go forceView (prevModel: Model) =
                 let keyOpt = ConsoleUtils.maybeGetKey()
 
@@ -338,7 +338,7 @@ module Main =
 
                 let newModel =
                     if newModel <> prevModel || forceView || wasDirty then
-                        view newModel
+                        view displayConfig newModel
                     else newModel
 
                 match continueLoop with
@@ -415,5 +415,10 @@ module Main =
                 //Op: End
             }
 
-        Program.loop io modelUpdateMessages mqtt.PublishMessage true init
+        let displayConfig =
+            {
+                DisplayConfig.SelectedFileSymbol = ">>"
+            }
+
+        Program.loop displayConfig io modelUpdateMessages mqtt.PublishMessage true init
         0

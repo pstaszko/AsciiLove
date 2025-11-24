@@ -228,18 +228,15 @@ module Domain =
             GitDetailLevel: int
         }
 
+    type DisplayConfig =
+        {
+            SelectedFileSymbol: string
+        }
+
     [<RequireQualifiedAccess>]
     type CursorSide =
         | Right
         | Left
-
-    type SelectableFile =
-        {
-            RepoPath: string
-            FilePath: string
-        }
-        member this.FullPath =
-            System.IO.Path.Combine(this.RepoPath, this.FilePath)
 
     type GitInfo =
         {

@@ -31,16 +31,25 @@ module GitDomain =
                 Visibility = Visible
                 //SelectedFile = None
             }
+
+    type SelectableFile =
+        {
+            RepoPath: string
+            FilePath: string
+        }
+        member this.FullPath =
+            System.IO.Path.Combine(this.RepoPath, this.FilePath)
+
     type FileBucket =
         {
             Name: string
             Color: ConsoleColor
-            Files: string list
+            Files: SelectableFile list
         }
     type GitRepoStatusReport = {
         Version: int
         Path: string
-        [<Obsolete>]
+        //[<Obsolete>]
         RepoPath: string
         WorkingDir: string
         State: string
@@ -97,7 +106,7 @@ module GitDomain =
     let isGitRepository (path: string) : bool =
         let gitDir = System.IO.Path.Combine(path, ".git")
         System.IO.Directory.Exists(gitDir)
-        
+
     let assertIsGitRepoDir(path: string) : unit =
         if System.IO.Directory.Exists(path) then
             if isGitRepository path then
