@@ -13,7 +13,6 @@ open AsciiLove
 
 open Spectre.Console
 //Op: End
-
 module GalleryScreen =
     module ColorPrint =
         let printWithColor (color: string) (line: string) =
@@ -90,12 +89,9 @@ module GalleryScreen =
 
             model
         | SetDisplayMode mode ->
-            //post (GlobalMsg GlobalMsg.ClearScreen)
-            //post (GalleryMsg SetRandomArt)
             { model with ArtSettings = { model.ArtSettings with ArtDisplayMode = mode } }
         | SetFilter filter ->
             post (GlobalMsg GlobalMsg.ClearScreen)
-            //CLEAR()
             post (GalleryMsg SetRandomArt)
             { model with ArtSettings = { model.ArtSettings with ArtFilter = filter } }
         | Next ->
@@ -130,15 +126,15 @@ module GalleryScreen =
     let hotkeys =
         [
             //Op: Auto
-            Hotkey.Create("+" , "" , GalleryMsg Next)
-            Hotkey.Create("-" , "" , GalleryMsg Previous)
-            Hotkey.Create("1" , "" , GalleryMsg (SetDisplayMode ArtDisplayMode.ImageIfAvailable))
-            Hotkey.Create("2" , "" , GalleryMsg (SetDisplayMode ArtDisplayMode.Text))
-            Hotkey.Create("3" , "" , GalleryMsg (SetFilter ArtFilter.All))
-            Hotkey.Create("4" , "" , GalleryMsg (SetFilter ArtFilter.ImageOnly))
-            Hotkey.Create("5" , "" , GalleryMsg (SetFilter ArtFilter.Newest))
-            Hotkey.Create("t" , "" , GalleryMsg OpenImageText)
-            Hotkey.Create("e" , "" , GalleryMsg ExploreImageText)
-            Hotkey.Create("i" , "" , GalleryMsg OpenImageFileIfExists)
+            Hotkey.Create("+", "", GalleryMsg Next)
+            Hotkey.Create("-", "", GalleryMsg Previous)
+            Hotkey.Create("1", "", GalleryMsg (SetDisplayMode ArtDisplayMode.ImageIfAvailable))
+            Hotkey.Create("2", "", GalleryMsg (SetDisplayMode ArtDisplayMode.Text))
+            Hotkey.Create("3", "", GalleryMsg (SetFilter ArtFilter.All))
+            Hotkey.Create("4", "", GalleryMsg (SetFilter ArtFilter.ImageOnly))
+            Hotkey.Create("5", "", GalleryMsg (SetFilter ArtFilter.Newest))
+            Hotkey.Create("t", "", GalleryMsg OpenImageText)
+            Hotkey.Create("e", "", GalleryMsg ExploreImageText)
+            Hotkey.Create("i", "", GalleryMsg OpenImageFileIfExists)
             //Op: End
         ]

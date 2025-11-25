@@ -58,7 +58,6 @@ module GitStatusScreen =
         w("FullPath", m.SelectedFile </> _.FullPath <!> "NoFile")
 
     let update (io: IO.IOActions) (model: Model) (msg: GitStatusMsg) =
-        let log x = ()
         let gm = model.GitInfo
         let getVisibleFiles () : SelectableFile list =
             gm.GitStatuses
@@ -66,7 +65,6 @@ module GitStatusScreen =
             |> List.collect ^ fun x ->
                 x.FileBuckets
                 |> List.collect _.Files
-                //|+| fun xx -> { RepoPath = x.Path; FilePath = xx }
 
         match msg with
         | ActOnAllReports action ->
@@ -298,15 +296,10 @@ module GitStatusScreen =
             <|> fun selectedFile ->
                     let git = io.RunGitCommand <| DI model.GitInfo.SelectedGitStatus.Value.Path
                     match action with
-                    //| OpenInFileExplorer ->
-                    //    Path.Combine(model.GitInfo.SelectedGitStatus.Value.Path, selectedFile)
-                    //    |> FI
-                    //    |> io.ExploreInFileExplorer
                     | StageFile -> git $"add \"{selectedFile}\""; RecheckGitStatus |> GitStatusMsg |> post
                     | DiffFile -> git $"difftool -- {selectedFile}"; RecheckGitStatus |> GitStatusMsg |> post
                     | UnstageFile -> git $"reset HEAD \"{selectedFile}\""; RecheckGitStatus |> GitStatusMsg |> post
                     | OpenInEditor -> io.OpenInEditor(FI selectedFile.FullPath)
-                    //| _ -> failwith "Not implemented"
             model
         | RecheckGitStatus ->
             reTriggerMonitor()

@@ -2,7 +2,6 @@ namespace AsciiLove
 //Op: Auto
 open Serilog
 //Op: End
-
 [<AutoOpen>]
 module Logging =
     open Serilog.Formatting.Display

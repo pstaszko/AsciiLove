@@ -7,10 +7,10 @@ open Atomic.Operators
 
 open ArtDomain
 open Domain
+open IO
 
 open Spectre.Console
 open Spectre.Console.Json
-open IO
 //Op: End
 module HotkeyDisplay =
     let formatHotkey (hotkey: Hotkey) =
@@ -20,8 +20,6 @@ module HotkeyDisplay =
             | "" -> ""
             | x -> $"{x} "
         $"[{modifier}{hotkey.Key}] {hotkey.Description}"
-
-    let printHotkey = formatHotkey >> Console_WriteLine
 
     [<ObsoleteAttribute>]
     let printHotkeys (hotkeys: Hotkey list) : HotkeyWrapBehavior option =
@@ -71,25 +69,6 @@ module HotkeyDisplay =
             |> Some
 
 module Wrapping =
-    //[<ObsoleteAttribute>]
-    //let getCurrentWrapBehavior_Specific (model: Model) : HotkeyWrapBehavior option =
-    //    match model.Screen with
-    //    //Op: Auto
-    //    | Gallery   -> Screens.GalleryScreen.hotkeys
-    //    | GitStatus -> Screens.GitStatusScreen.hotkeys model.GitInfo
-    //    | Main      -> Screens.MainScreen.hotkeys
-    //    | Settings  -> Screens.SettingsScreen.hotkeys
-    //    | Help      -> Screens.HelpScreen.hotkeys
-    //    //Op: End
-    //    |> function
-    //    | [] -> None
-    //    | hotkeys ->
-    //        Console_WriteLine("")
-    //        Console_WriteLine("")
-    //        Console_WriteLine($"[%s{string model.Screen} Screen Hotkeys]")
-    //        hotkeys
-    //        |> HotkeyDisplay.printHotkeys
-
     let getCurrentWrapBehavior_Specific_New (model: Model) : HotkeyWork option =
         match model.Screen with
         //Op: Auto
@@ -185,14 +164,15 @@ module Main =
 
         let globalHotkeys =
             [
+                //Op: CollapseWhitespaceKeepIndent
                 //Op: Auto
-                Hotkey.Create("g" , "Open Gallery"             , GalleryMsg GalleryMsg.Show)
-                Hotkey.Create("w" , "Open GS"                  , goToScreen GitStatus)
-                Hotkey.Create("m" , "Open Main"                , goToScreen Main)
-                Hotkey.Create("s" , "Open Settings"            , goToScreen Settings)
-                Hotkey.Create("h" , "Open Help"                , goToScreen Help)
-                Hotkey.Create("t" , "[Debug] Toggle Model View", GlobalMsg ToggleShowModel)
-                Hotkey.Create("q" , "Quit Application"         , GlobalMsg Quit)
+                Hotkey.Create("g", "Open Gallery"             , GalleryMsg GalleryMsg.Show)
+                Hotkey.Create("w", "Open GS"                  , goToScreen GitStatus)
+                Hotkey.Create("m", "Open Main"                , goToScreen Main)
+                Hotkey.Create("s", "Open Settings"            , goToScreen Settings)
+                Hotkey.Create("h", "Open Help"                , goToScreen Help)
+                Hotkey.Create("t", "[Debug] Toggle Model View", GlobalMsg ToggleShowModel)
+                Hotkey.Create("q", "Quit Application"         , GlobalMsg Quit)
                 //Op: End
             ]
 

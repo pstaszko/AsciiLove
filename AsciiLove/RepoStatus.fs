@@ -1,10 +1,13 @@
 namespace AsciiLove
+//Op: Auto
 open System
 open System.Text.Json.Nodes
+
 open Atomic.Operators
 open git_status_cache_dotnet.Client
 
 open GitDomain
+//Op: End
 [<AutoOpen>]
 module RepoStatus =
     let (|FitsType|_|) (json: string) : 't option =
@@ -32,13 +35,13 @@ module RepoStatus =
                         FilePath = x
                     }
 
-            let v =
-                    let xx = jsonNode.["Version"]
-                    try
-                        xx.ToString() |> int
-                    with failed ->
-                        BREAK xx
-                        0
+            let version =
+                let versionNode = jsonNode.["Version"]
+                try
+                    versionNode.ToString() |> int
+                with failed ->
+                    BREAK versionNode
+                    0
 
             let s =
                 let ss = jsonNode.["Stashes"]
@@ -51,18 +54,19 @@ module RepoStatus =
                 |> Seq.toList
 
             { GitDomain.GitRepoStatusReport.Empty with
-                Version           = v
+                //Op: CollapseWhitespaceKeepIndent
                 //Op: Auto
-                Path            = jsonNode.["Path"].ToString()
-                RepoPath        = jsonNode.["RepoPath"].ToString()
-                WorkingDir      = jsonNode.["WorkingDir"].ToString()
-                State           = jsonNode.["State"].ToString()
-                Branch          = jsonNode.["Branch"].ToString()
-                Upstream        = jsonNode.["Upstream"].ToString()
-                UpstreamGone    = jsonNode.["UpstreamGone"].GetValue<bool>()
-                AheadBy         = jsonNode.["AheadBy"].GetValue<int>()
-                BehindBy        = jsonNode.["BehindBy"].GetValue<int>()
-                Stashes         = s
+                Version      = version
+                Path         = jsonNode.["Path"].ToString()
+                RepoPath     = jsonNode.["RepoPath"].ToString()
+                WorkingDir   = jsonNode.["WorkingDir"].ToString()
+                State        = jsonNode.["State"].ToString()
+                Branch       = jsonNode.["Branch"].ToString()
+                Upstream     = jsonNode.["Upstream"].ToString()
+                UpstreamGone = jsonNode.["UpstreamGone"].GetValue<bool>()
+                AheadBy      = jsonNode.["AheadBy"].GetValue<int>()
+                BehindBy     = jsonNode.["BehindBy"].GetValue<int>()
+                Stashes      = s
                 //Op: End
                 FileBuckets =
                     [
@@ -94,7 +98,7 @@ module RepoStatus =
         let stashCount = s.Stashes.Length
         let aheadBehindStashDirtCount = aheadBy + behindBy + stashCount
 
-        let dirt =
+        let dirtText =
             [
                 if aheadBy > 0 then $"Ahead: %i{aheadBy}"
                 if behindBy > 0 then $"Behind: %i{behindBy}"
@@ -109,7 +113,7 @@ module RepoStatus =
 
         let dirtyFiles = s.FileBuckets |> Seq.sumBy _.Files.Length
 
-        (dirtyFiles > 0 || aheadBehindStashDirtCount > 0), dirt
+        (dirtyFiles > 0 || aheadBehindStashDirtCount > 0), dirtText
 
     let printGitRepoStatusReport selectedFileSymbol (side: CursorSide) (repoSelected: bool) (selectedFile: SelectableFile option) (s: GitRepoStatusReport) (meta: GitRepoStatusReportMeta) (dirt: string list) =
         let indentation = "    "
@@ -139,6 +143,7 @@ module RepoStatus =
                     name = x.Name
                     filesInBucket = x.Files
                 |}
+
         if meta.Visibility = Visibility.Visible then
             filesBucketsToNote
             |?! _.filesInBucket.IsEmpty
@@ -157,7 +162,5 @@ module RepoStatus =
 
                     writeWithColor fileBucket.consoleColor $"  %s{fileInBucket.FilePath}"
                     writeLine ""
-
-        //selectedFile </> _.FullPath <!> "NoSelectedFile" |> writeWithColor ConsoleColor.Cyan
 
         Console.ResetColor()

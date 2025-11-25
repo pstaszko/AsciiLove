@@ -24,12 +24,10 @@ module GitDomain =
     type GitRepoStatusReportMeta =
         {
             Visibility: Visibility
-            //SelectedFile: string option
         }
         static member Default =
             {
                 Visibility = Visible
-                //SelectedFile = None
             }
 
     type SelectableFile =
@@ -59,17 +57,6 @@ module GitDomain =
         AheadBy: int
         BehindBy: int
         FileBuckets: FileBucket list
-        //IndexAdded: string list
-        //IndexModified: string list
-        //IndexDeleted: string list
-        //IndexTypeChange: string list
-        //IndexRenamed: string list
-        //WorkingAdded: string list
-        //WorkingModified: string list
-        //WorkingDeleted: string list
-        //WorkingTypeChange: string list
-        //WorkingRenamed: string list
-        //WorkingUnreadable: string list
         Ignored: string list
         Conflicted: string list
         Stashes: StashEntry list
@@ -87,15 +74,6 @@ module GitDomain =
                 AheadBy = 0
                 BehindBy = 0
                 FileBuckets = []
-                //IndexDeleted = []
-                //IndexTypeChange = []
-                //IndexRenamed = []
-                //WorkingAdded = []
-                //WorkingModified = []
-                //WorkingDeleted = []
-                //WorkingTypeChange = []
-                //WorkingRenamed = []
-                //WorkingUnreadable = []
                 Ignored = []
                 Conflicted = []
                 Stashes = []

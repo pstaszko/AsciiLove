@@ -1,6 +1,5 @@
 namespace AsciiLove
 open Atomic.Operators
-
 module ArtDomain =
     open System
     open System.IO
@@ -258,16 +257,6 @@ module Domain =
         | Wrap
         | NoWrap
 
-        //member this.ReplaceAReport (newReport: GitRepoStatusReport) =
-        //    let n =
-        //        this.GitStatuses
-        //        |+| fun existingReport ->
-        //            if existingReport.RepoPath = newReport.RepoPath then
-        //                newReport
-        //            else
-        //                existingReport
-        //    { this with GitStatuses = n }
-
     type HotkeyWork =
         {
             LinesToPrint: string list
@@ -366,7 +355,6 @@ module Messages =
 
     type FileAction =
         | OpenInEditor
-        //| OpenInFileExplorer
         | StageFile
         | DiffFile
         | UnstageFile
