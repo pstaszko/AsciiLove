@@ -12,5 +12,5 @@ Serilog.Sinks.RollingFile
 SixLabors.ImageSharp
 Spectre.Console.ImageSharp
 Spectre.Console.Json
-starlycode.directoryattributemanager.core
+StarlyCode.DirectoryAttributeManager.Core
 //Op: End
