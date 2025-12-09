@@ -7,7 +7,7 @@ storage: none
 ### AsciiLove
 //Op: NugetCleanup
 nuget fischorg.FMQTT
-nuget FsUnit.XUnit
+#nuget FsUnit.XUnit
 nuget Microsoft.Extensions.Configuration
 nuget Microsoft.Extensions.Configuration.Binder
 nuget Microsoft.Extensions.Configuration.Json
@@ -20,6 +20,6 @@ nuget Spectre.Console.ImageSharp
 nuget Spectre.Console.Json
 nuget starlycode.directoryattributemanager.core
 nuget WinMergeEquals
-nuget xunit.runner.visualstudio
+#nuget xunit.runner.visualstudio
 nuget Serilog.Extensions.Logging
 //Op: End
