@@ -1,4 +1,5 @@
 //Op: Sort
+FSharp.Core
 fischorg.FMQTT
 Microsoft.Extensions.Configuration
 Microsoft.Extensions.Configuration.Binder

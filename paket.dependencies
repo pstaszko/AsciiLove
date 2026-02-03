@@ -6,6 +6,7 @@ storage: none
 
 ### AsciiLove
 //Op: NugetCleanup
+nuget FSharp.Core
 nuget fischorg.FMQTT
 #nuget FsUnit.XUnit
 nuget Microsoft.Extensions.Configuration
