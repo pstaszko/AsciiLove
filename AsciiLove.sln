@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11217.181 d18.0
+VisualStudioVersion = 18.0.11217.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AsciiLove", "AsciiLove\AsciiLove.fsproj", "{18A9D763-4783-4064-B782-BC51B07FDA16}"
 EndProject
@@ -9,6 +9,12 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Atomic.Operators", "..\Atomic.Operators\Atomic.Operators\Atomic.Operators.fsproj", "{EDCACBA4-CEBE-4AD3-BD9F-5E386F1A0000}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "git-status-cache-dotnet", "git-status-cache-dotnet\git-status-cache-dotnet.fsproj", "{519F8F9F-8C57-440D-A5B4-E8D65C9DAFD4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7755ADBA-D641-4645-B625-07914DFF4EDD}"
+	ProjectSection(SolutionItems) = preProject
+		paket.dependencies = paket.dependencies
+		paket.lock = paket.lock
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
