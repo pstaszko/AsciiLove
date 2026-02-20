@@ -7,6 +7,10 @@ module Config =
         {
             LogFilePath: string
         }
+    type FeatureFlags =
+        {
+            ShowSelectedFiles: bool
+        }
 
     let getConfig () =
         let config =
@@ -17,4 +21,5 @@ module Config =
             EditorPath = config.["EditorPath"]
             SelectedFileSymbol = config.["SelectedFileSymbol"]
             LoggingConfig = {LogFilePath = config.["LogFilePath"]}
+            FeatureFlags = config.GetSection("FeatureFlags").Get<FeatureFlags>()
         |}

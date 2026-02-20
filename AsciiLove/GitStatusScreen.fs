@@ -34,7 +34,7 @@ module GitStatusScreen =
                 t.Stop()
                 check()
                 t.Start()
-    let view (displayConfig: DisplayConfig) (m: Model) =
+    let view showSelectedFiles (displayConfig: DisplayConfig) (m: Model) =
         ConsoleUtils.setSize 12
         Console.SetCursorPosition(0, 0)
         let m = m.GitInfo
@@ -49,13 +49,13 @@ module GitStatusScreen =
                     <!> GitRepoStatusReportMeta.Default
                 printGitRepoStatusReport displayConfig.SelectedFileSymbol m.Side repoIsSelected m.SelectedFile gitStatus meta dirt
                 Console_WriteLine("")
-
-        //Console_WriteLineFlushed(m.Side.ToString())
-        let w (a,b) = Console_WriteLineFlushed($"{a}: {b}")
-        w("Path", m.SelectedGitStatus </> _.Path <!> "NoRprt")
-        w("RepoPath", m.SelectedFile </> _.RepoPath <!> "NoFile")
-        w("FilePath", m.SelectedFile </> _.FilePath <!> "NoFile")
-        w("FullPath", m.SelectedFile </> _.FullPath <!> "NoFile")
+        if showSelectedFiles then
+            Console_WriteLineFlushed(m.Side.ToString())
+            let w (a,b) = Console_WriteLineFlushed($"{a}: {b}")
+            w("Path", m.SelectedGitStatus </> _.Path <!> "NoRprt")
+            w("RepoPath", m.SelectedFile </> _.RepoPath <!> "NoFile")
+            w("FilePath", m.SelectedFile </> _.FilePath <!> "NoFile")
+            w("FullPath", m.SelectedFile </> _.FullPath <!> "NoFile")
 
     let update (io: IO.IOActions) (model: Model) (msg: GitStatusMsg) =
         let gm = model.GitInfo
