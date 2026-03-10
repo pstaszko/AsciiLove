@@ -1,5 +1,6 @@
 namespace AsciiLove
 open Atomic.Operators
+open StarlyCode.CasePipes
 module ArtDomain =
     open System
     open System.IO
@@ -399,19 +400,20 @@ module Messages =
         | GalleryMsg of GalleryMsg
         | GitStatusMsg of GitStatusMsg
         | RaiseMessage of Topic * Message
-
+    let private fixKeyName = CasePipe.SpacifyName >> CasePipe.TitleCase
     type Hotkey =
         {
             Key: string
+            DisplayName: string
             Description: string
             Msg: Msg
             Mods: string
         }
         static member Create(key: string, description: string, msg: Msg) =
-            { Key = key.ToUpper(); Description = description; Msg = msg; Mods = "" }
+            { Key = key; DisplayName = key |> fixKeyName ; Description = description; Msg = msg; Mods = "" }
 
         static member Create2(key: System.ConsoleKey, description: string, msg: Msg) =
-            { Key = key.ToString().ToUpper(); Description = description; Msg = msg; Mods = "" }
+            { Key = key.ToString(); DisplayName = key.ToString() |> fixKeyName; Description = description; Msg = msg; Mods = "" }
 
     let setMods (mods: string) (hotkey: Hotkey) =
         { hotkey with Mods = mods }

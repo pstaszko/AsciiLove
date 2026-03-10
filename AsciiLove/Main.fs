@@ -19,7 +19,7 @@ module HotkeyDisplay =
             |> function
             | "" -> ""
             | x -> $"{x} "
-        $"[{modifier}{hotkey.Key}] {hotkey.Description}"
+        $"[{modifier}{hotkey.DisplayName}] {hotkey.Description}"
 
     [<ObsoleteAttribute>]
     let printHotkeys (hotkeys: Hotkey list) : HotkeyWrapBehavior option =
@@ -177,12 +177,13 @@ module Main =
             ]
 
         let isKeyAMatch (stringVersion: string) (mods: string) (consoleKey: ConsoleKeyInfo) =
+            if stringVersion.ToLower().Contains("right") then ()
             let mods = if mods = "" then "None" else mods
             if consoleKey.KeyChar = char 27 && stringVersion = "Esc" then
                 true
             else
                 stringVersion.[0] = consoleKey.KeyChar || stringVersion = consoleKey.Key.ToString()
-                |> fun x -> x && mods = string consoleKey.Modifiers
+                |> fun x -> x && mods = consoleKey.Modifiers.ToString()
 
         let handleKey (model: Model) (key: ConsoleKeyInfo) : unit =
             match model.Screen with
