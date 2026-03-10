@@ -294,12 +294,13 @@ module GitStatusScreen =
         | ActOnSelectedFile action ->
             model.GitInfo.SelectedFile
             <|> fun selectedFile ->
-                    let git = io.RunGitCommand <| DI model.GitInfo.SelectedGitStatus.Value.Path
+                    let selectedFile = selectedFile.FullPath
+                    let git filePath = filePath |> io.RunGitCommand (DI model.GitInfo.SelectedGitStatus.Value.Path)
                     match action with
                     | StageFile -> git $"add \"{selectedFile}\""; RecheckGitStatus |> GitStatusMsg |> post
                     | DiffFile -> git $"difftool -- {selectedFile}"; RecheckGitStatus |> GitStatusMsg |> post
                     | UnstageFile -> git $"reset HEAD \"{selectedFile}\""; RecheckGitStatus |> GitStatusMsg |> post
-                    | OpenInEditor -> io.OpenInEditor(FI selectedFile.FullPath)
+                    | OpenInEditor -> io.OpenInEditor(FI selectedFile)
             model
         | RecheckGitStatus ->
             reTriggerMonitor()
