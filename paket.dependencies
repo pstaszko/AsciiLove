@@ -6,21 +6,20 @@ storage: none
 
 ### AsciiLove
 //Op: NugetCleanup
-nuget FSharp.Core
 nuget fischorg.FMQTT
-#nuget FsUnit.XUnit
+nuget FSharp.Core
 nuget Microsoft.Extensions.Configuration
 nuget Microsoft.Extensions.Configuration.Binder
 nuget Microsoft.Extensions.Configuration.Json
 nuget Microsoft.NET.Test.Sdk
 nuget Newtonsoft.Json
+nuget Serilog.Extensions.Logging
 nuget Serilog.Sinks.Map
 nuget Serilog.Sinks.RollingFile
 nuget SixLabors.ImageSharp
 nuget Spectre.Console.ImageSharp
 nuget Spectre.Console.Json
+nuget StarlyCode.CasePipes
 nuget starlycode.directoryattributemanager.core
 nuget WinMergeEquals
-#nuget xunit.runner.visualstudio
-nuget Serilog.Extensions.Logging
 //Op: End

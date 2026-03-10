@@ -408,10 +408,10 @@ module Messages =
             Mods: string
         }
         static member Create(key: string, description: string, msg: Msg) =
-            { Key = key; Description = description; Msg = msg; Mods = "" }
+            { Key = key.ToUpper(); Description = description; Msg = msg; Mods = "" }
 
         static member Create2(key: System.ConsoleKey, description: string, msg: Msg) =
-            { Key = key |> string; Description = description; Msg = msg; Mods = "" }
+            { Key = key.ToString().ToUpper(); Description = description; Msg = msg; Mods = "" }
 
     let setMods (mods: string) (hotkey: Hotkey) =
         { hotkey with Mods = mods }

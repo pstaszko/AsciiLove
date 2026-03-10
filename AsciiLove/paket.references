@@ -1,4 +1,3 @@
-//Op: Sort
 FSharp.Core
 fischorg.FMQTT
 Microsoft.Extensions.Configuration
@@ -14,4 +13,4 @@ SixLabors.ImageSharp
 Spectre.Console.ImageSharp
 Spectre.Console.Json
 StarlyCode.DirectoryAttributeManager.Core
-//Op: End
+StarlyCode.CasePipes
