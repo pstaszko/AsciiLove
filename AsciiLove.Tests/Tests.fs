@@ -21,8 +21,8 @@ type ``MVU Tests``() =
     let SetDirtyTrue (model: Model) = model.SetDirty true
     let stepAdapt model (maybeChar: char option) =
         let maybeConsoleKeyInfo = maybeChar |> Option.map ^ fun a -> new ConsoleKeyInfo(a, ConsoleKey.Escape, false, false, false)
-        let io = 
-            { 
+        let io =
+            {
                 IO.IOActions.ExploreInFileExplorer = fun _ -> failwith "Not expected to be called"
                 IO.IOActions.ExploreDirectoryInFileExplorer = fun _ -> failwith "Not expected to be called"
                 IO.IOActions.OpenInEditor = fun _ -> failwith "Not expected to be called"

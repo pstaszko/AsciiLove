@@ -297,11 +297,11 @@ module GitStatusScreen =
                     let selectedFile = selectedFile.FullPath
                     let git filePath = filePath |> io.RunGitCommand (DI model.GitInfo.SelectedGitStatus.Value.Path)
                     match action with
-                    | StageFile -> git $"add \"%s{selectedFile}\""; 
+                    | StageFile -> git $"add \"%s{selectedFile}\"";
                     | DiffFile -> git $"difftool -- %s{selectedFile}"
                     | UnstageFile -> git $"reset HEAD \"%s{selectedFile}\""
                     | OpenInEditor -> io.OpenInEditor(FI selectedFile)
-                    
+
                     RecheckGitStatus |> GitStatusMsg |> post
             model
         | RecheckGitStatus ->
