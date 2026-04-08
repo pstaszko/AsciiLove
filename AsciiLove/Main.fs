@@ -341,7 +341,7 @@ module Main =
     let main args =
         let cfg = configLogger()
 
-        Serilog.Debugging.SelfLog.Enable(fun msg -> Console.WriteLine(msg); logDebug msg)
+        //Serilog.Debugging.SelfLog.Enable(fun msg -> Console.WriteLine(msg); logDebug msg)
         ConsoleUtils.setSize 12
 
         let mqtt = FMQTT.LocalBroker.ConnectToLocal()

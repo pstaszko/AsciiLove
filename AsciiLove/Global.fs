@@ -64,7 +64,7 @@ module Global =
     let CLEAR (reason: string) =
         Logging.logVerbose $"RealClear: {reason}"
         Console.Clear()
-        Console.WriteLine("\x1b[3J")
+        Console.Write("\x1b[3J")
         Console.Clear()
 
     let BREAKK x = x
