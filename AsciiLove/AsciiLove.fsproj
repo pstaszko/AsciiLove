@@ -16,11 +16,12 @@
     <Compile Include="GitDomain.fs" />
     <Compile Include="Domain.fs" />
     <Compile Include="RepoStatus.fs" />
-    <Compile Include="GitStatusScreen.fs" />
-    <Compile Include="MainScreen.fs" />
-    <Compile Include="SettingsScreen.fs" />
-    <Compile Include="HelpScreen.fs" />
-    <Compile Include="GalleryScreen.fs" />
+    <Compile Include="Screens\MVU.fs" />
+    <Compile Include="Screens\GitStatusScreen.fs" />
+    <Compile Include="Screens\SettingsScreen.fs" />
+    <Compile Include="Screens\HelpScreen.fs" />
+    <Compile Include="Screens\GalleryScreen.fs" />
+    <Compile Include="Screens\MainScreen.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
   <ItemGroup>

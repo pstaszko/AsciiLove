@@ -18,6 +18,7 @@ module Utils =
         WinMergeEquals.WinMergeEquals.AreEqualWinMerge (srl expected) (srl actual) WinMergeEquals.WhitespaceSimplify.None "Exp" "Act"
 
 type ``MVU Tests``() =
+
     let SetDirtyTrue (model: Model) = model.SetDirty true
     let stepAdapt model (maybeChar: char option) =
         let maybeConsoleKeyInfo = maybeChar |> Option.map ^ fun a -> new ConsoleKeyInfo(a, ConsoleKey.Escape, false, false, false)
@@ -29,7 +30,12 @@ type ``MVU Tests``() =
                 IO.IOActions.SerializeIndented = fun _ -> failwith "Not expected to be called"
                 IO.IOActions.RunGitCommand = fun _ -> failwith "Not expected to be called"
             }
-        Program.step io (fun _ _ -> ()) maybeConsoleKeyInfo model
+        let displayConfig : Screens.GitStatusScreen.GitStatusDisplayConfig = 
+            {
+                SelectedFileSymbol = ">"
+            }
+        let gsd = Screens.GitStatusScreen.getScreenDef io false displayConfig
+        Program.step gsd (fun _ _ -> ()) maybeConsoleKeyInfo model
     [<Fact>]
     member _.``No messages, no changes``() =
         let init = AsciiLove.Main.init

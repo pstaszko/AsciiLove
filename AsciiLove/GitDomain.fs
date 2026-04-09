@@ -1,4 +1,4 @@
-namespace AsciiLove
+namespace AsciiLove.GitStatus
 //Op: Auto
 open System
 //Op: End

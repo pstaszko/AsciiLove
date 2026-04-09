@@ -1,5 +1,6 @@
 namespace AsciiLove
 //Op: Auto
+open AsciiLove.GitStatus
 open System
 open System.Threading
 
@@ -11,6 +12,8 @@ open IO
 
 open Spectre.Console
 open Spectre.Console.Json
+open AsciiLove.Screens.GitStatusScreen
+open MVU
 //Op: End
 module HotkeyDisplay =
     let formatHotkey (hotkey: Hotkey) =
@@ -131,10 +134,10 @@ module Main =
         | Stop
 
     module Program =
-        let update io raiseMessage (model: Model) (msg: Msg) : Model =
+        let update (gitStatusScreenDef: ScreenDef<GitStatusMsg>) raiseMessage (model: Model) (msg: Msg) : Model =
             match msg with
             //Op: Auto
-            | GitStatusMsg msg    -> Screens.GitStatusScreen.update io model msg
+            | GitStatusMsg msg    -> gitStatusScreenDef.Update model msg
             | GalleryMsg msg      -> Screens.GalleryScreen.update model msg
             | MainMsg msg         -> Screens.MainScreen.update model msg
             | SettingsMsg msg     -> Screens.SettingsScreen.update model msg
@@ -203,7 +206,7 @@ module Main =
             | Some hotkey -> post (hotkey.Msg)
             | None -> ()
 
-        let view showSelectedFiles displayConfig (model: Model) : Model =
+        let view (showSelectedFiles: bool) (displayConfig: GitStatusDisplayConfig) (model: Model) : Model =
             if model.Window.ShowModel then CLEAR "Reset screen every tick if the model is being shown"
             match model.Screen with
             //Op: Auto
@@ -278,7 +281,7 @@ module Main =
                     AnsiConsole.Write(panel)
             model
 
-        let step io raiseMessage (keyOpt: ConsoleKeyInfo option) (prevModel: Model): Model * LoopBehavior =
+        let step (gitStatusScreenDef: ScreenDef<GitStatusMsg>) raiseMessage (keyOpt: ConsoleKeyInfo option) (prevModel: Model): Model * LoopBehavior =
             keyOpt
             <|> fun key -> handleKey prevModel key
 
@@ -287,7 +290,7 @@ module Main =
             let mutable msgOpt : Msg = Unchecked.defaultof<Msg>
 
             while messageQueue.TryDequeue &msgOpt do
-                let updated = update io raiseMessage newModel msgOpt
+                let updated = update gitStatusScreenDef raiseMessage newModel msgOpt
                 newModel <- updated
                 match msgOpt with
                 | GlobalMsg Quit -> loopBehavior <- LoopBehavior.Stop
@@ -295,11 +298,11 @@ module Main =
 
             newModel, loopBehavior
 
-        let loop showSelectedFiles displayConfig io (modelUpdateMessageCallbacks: ModelUpdateMessageCallback list) raiseMessage forceView (prevModel: Model) =
+        let loop showSelectedFiles displayConfig gsd (io: IOActions) (modelUpdateMessageCallbacks: ModelUpdateMessageCallback list) raiseMessage forceView (prevModel: Model) =
             let rec go forceView (prevModel: Model) =
                 let keyOpt = ConsoleUtils.maybeGetKey()
 
-                let newModel, continueLoop = step io raiseMessage keyOpt prevModel
+                let newModel, continueLoop = step gsd raiseMessage keyOpt prevModel
 
                 let wasDirty = newModel.Window.DirtyScreen
 
@@ -398,8 +401,10 @@ module Main =
 
         let displayConfig =
             {
-                DisplayConfig.SelectedFileSymbol = ">>"
+                GitStatusDisplayConfig.SelectedFileSymbol = ">>"
             }
+        
+        let gsd = Screens.GitStatusScreen.getScreenDef io cfg.FeatureFlags.ShowSelectedFiles displayConfig
 
-        Program.loop cfg.FeatureFlags.ShowSelectedFiles displayConfig io modelUpdateMessages mqtt.PublishMessage true init
+        Program.loop cfg.FeatureFlags.ShowSelectedFiles displayConfig gsd io modelUpdateMessages mqtt.PublishMessage true init
         0

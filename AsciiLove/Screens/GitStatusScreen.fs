@@ -5,12 +5,19 @@ open System.IO
 
 open AsciiLove.Domain
 open AsciiLove.Messages
-open AsciiLove.RepoStatus
+open AsciiLove.GitStatus.RepoStatus
 open Atomic.Operators
 
 open AsciiLove
+open AsciiLove.GitStatus
+open MVU
 //Op: End
 module GitStatusScreen =
+    type GitStatusDisplayConfig =
+        {
+            SelectedFileSymbol: string
+        }
+
     let mutable reTriggerMonitor = fun () -> ()
     let startMonitor dirs =
         let check() =
@@ -34,7 +41,7 @@ module GitStatusScreen =
                 t.Stop()
                 check()
                 t.Start()
-    let view showSelectedFiles (displayConfig: DisplayConfig) (m: Model) =
+    let view showSelectedFiles (displayConfig: GitStatusDisplayConfig) (m: Model) =
         ConsoleUtils.setSize 12
         Console.SetCursorPosition(0, 0)
         let m = m.GitInfo
@@ -57,7 +64,7 @@ module GitStatusScreen =
             w("FilePath", m.SelectedFile </> _.FilePath <!> "NoFile")
             w("FullPath", m.SelectedFile </> _.FullPath <!> "NoFile")
 
-    let update (io: IO.IOActions) (model: Model) (msg: GitStatusMsg) =
+    let private update (io: IO.IOActions) (model: Model) (msg: GitStatusMsg) =
         let gm = model.GitInfo
         let getVisibleFiles () : SelectableFile list =
             gm.GitStatuses
@@ -331,3 +338,10 @@ module GitStatusScreen =
             Hotkey.Create2(ConsoleKey.UpArrow           , "Push"            , GitPush                      |> ActOnSelectedReport                  |> Msg.GitStatusMsg) |> setMods "Alt"
             //Op: End
         ]
+
+
+    let getScreenDef (io: IO.IOActions) showSelectedFiles (displayConfig: GitStatusDisplayConfig) : ScreenDef<GitStatusMsg> = {
+        View = view showSelectedFiles displayConfig
+        Update = update io
+        Hotkeys = []
+    }

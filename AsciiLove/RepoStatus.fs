@@ -1,4 +1,4 @@
-namespace AsciiLove
+namespace AsciiLove.GitStatus
 //Op: Auto
 open System
 open System.Text.Json.Nodes
@@ -7,6 +7,7 @@ open Atomic.Operators
 open git_status_cache_dotnet.Client
 
 open GitDomain
+open AsciiLove
 //Op: End
 [<AutoOpen>]
 module RepoStatus =

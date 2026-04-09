@@ -1,6 +1,7 @@
 namespace AsciiLove
 open Atomic.Operators
 open StarlyCode.CasePipes
+open AsciiLove.GitStatus
 module ArtDomain =
     open System
     open System.IO
@@ -226,11 +227,6 @@ module Domain =
             IncrementStep: int
             DecrementStep: int
             GitDetailLevel: int
-        }
-
-    type DisplayConfig =
-        {
-            SelectedFileSymbol: string
         }
 
     [<RequireQualifiedAccess>]
