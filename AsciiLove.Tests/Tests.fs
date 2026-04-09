@@ -100,3 +100,9 @@ type ``MVU Tests``() =
         let settingsScreen = stepAdapt init (Some 's') |> fst
         stepAdapt settingsScreen (Some 'm')
         |> should equal ({ init with Screen = Main }.SetDirty true, LoopBehavior.Continue)
+
+    [<Fact>]
+    member _.``MainScreen increment still updates count``() =
+        let init = AsciiLove.Main.init
+        AsciiLove.Screens.MainScreen.update init Increment
+        |> should equal { init with Count = init.Count + init.Settings.IncrementStep }

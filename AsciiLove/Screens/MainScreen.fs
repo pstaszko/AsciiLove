@@ -1,14 +1,70 @@
 namespace AsciiLove.Screens
 //Op: Auto
 open System
-open System.Threading.Tasks
 
-open AsciiLove.Domain
-open AsciiLove.Messages
+open ConsoleMVU.Contracts
+open ConsoleMVU.Runtime
 
 open AsciiLove
 //Op: End
 module MainScreen =
+    type MainFeatureModel =
+        {
+            Count: int
+            Busy: bool
+            IncrementStep: int
+            DecrementStep: int
+        }
+
+    let private toFeatureModel (model: Model) : MainFeatureModel =
+        {
+            Count = model.Count
+            Busy = model.Busy
+            IncrementStep = model.Settings.IncrementStep
+            DecrementStep = model.Settings.DecrementStep
+        }
+
+    let private fromFeatureModel (featureModel: MainFeatureModel) (model: Model) : Model =
+        {
+            model with
+                Count = featureModel.Count
+                Busy = featureModel.Busy
+                Settings =
+                    {
+                        model.Settings with
+                            IncrementStep = featureModel.IncrementStep
+                            DecrementStep = featureModel.DecrementStep
+                    }
+        }
+
+    let private updateFeatureModel (model: MainFeatureModel) (msg: MainMsg) : FeatureUpdateResult<MainFeatureModel, MainMsg> =
+        match msg with
+        | Increment ->
+            {
+                Model = { model with Count = model.Count + model.IncrementStep }
+                Effects = []
+            }
+        | Decrement ->
+            {
+                Model = { model with Count = model.Count - model.DecrementStep }
+                Effects = []
+            }
+        | DelayedIncrement ->
+            {
+                Model = { model with Busy = true }
+                Effects = [ FeatureEffect.DelayDispatchMs(1000, DelayedIncrementCompleted) ]
+            }
+        | DelayedIncrementCompleted ->
+            {
+                Model =
+                    {
+                        model with
+                            Busy = false
+                            Count = model.Count + model.IncrementStep
+                    }
+                Effects = []
+            }
+
     let view (model: Model) =
         Console.SetCursorPosition(0, 0)
         Console_WriteLine($"Count: %i{model.Count}      ")
@@ -16,20 +72,14 @@ module MainScreen =
         else Console_WriteLine("                  ")
         Console_WriteLine($"Increment step: %i{model.Settings.IncrementStep}  Decrement step: %i{model.Settings.DecrementStep}")
 
-    let update (model: Model) (msg: MainMsg) =
-        match msg with
-        | Increment ->
-            { model with Count = model.Count + model.Settings.IncrementStep }
-        | Decrement ->
-            { model with Count = model.Count - model.Settings.DecrementStep }
-        | DelayedIncrement ->
-            Task.Delay(1000)
-                .ContinueWith(fun _ -> post (MainMsg DelayedIncrementCompleted))
-            |> ignore
+    let update (model: Model) (msg: MainMsg) : Model =
+        let featureModel = toFeatureModel model
+        let result = updateFeatureModel featureModel msg
 
-            { model with Busy = true }
-        | DelayedIncrementCompleted ->
-            { model with Busy = false; Count = model.Count + model.Settings.IncrementStep }
+        result.Effects
+        |> EffectRunner.run (MainMsg >> post)
+
+        fromFeatureModel result.Model model
 
     let hotkeys =
         [

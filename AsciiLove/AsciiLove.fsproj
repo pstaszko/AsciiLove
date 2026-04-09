@@ -25,6 +25,8 @@
     <Compile Include="Main.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ConsoleMVU.Contracts\ConsoleMVU.Contracts.fsproj" />
+    <ProjectReference Include="..\ConsoleMVU.Runtime\ConsoleMVU.Runtime.fsproj" />
     <ProjectReference Include="..\..\..\Starly\Atomic.Operators\Atomic.Operators\Atomic.Operators.fsproj" />
     <ProjectReference Include="..\git-status-cache-dotnet\git-status-cache-dotnet.fsproj" />
   </ItemGroup>

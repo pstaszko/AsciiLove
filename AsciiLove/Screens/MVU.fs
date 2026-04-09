@@ -1,7 +1,3 @@
 ﻿namespace AsciiLove
 module MVU =
-    type ScreenDef<'message> = {
-        View: Model -> unit
-        Update: Model -> 'message -> Model
-        Hotkeys: Hotkey list
-    }
+    type ScreenDef<'message> = ConsoleMVU.Contracts.ScreenDef<Model, 'message, Hotkey>
