@@ -106,3 +106,9 @@ type ``MVU Tests``() =
         let init = AsciiLove.Main.init
         AsciiLove.Screens.MainScreen.update init Increment
         |> should equal { init with Count = init.Count + init.Settings.IncrementStep }
+
+    [<Fact>]
+    member _.``SettingsScreen increment-step update still works``() =
+        let init = AsciiLove.Main.init
+        AsciiLove.Screens.SettingsScreen.update init IncIncrementStep
+        |> should equal { init with Settings = { init.Settings with IncrementStep = init.Settings.IncrementStep + 1 } }
