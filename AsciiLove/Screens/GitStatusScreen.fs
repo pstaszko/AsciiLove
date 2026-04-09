@@ -7,16 +7,40 @@ open AsciiLove.Domain
 open AsciiLove.Messages
 open AsciiLove.GitStatus.RepoStatus
 open Atomic.Operators
+open ConsoleMVU.Contracts
+open ConsoleMVU.Runtime
 
 open AsciiLove
 open AsciiLove.GitStatus
 open MVU
+open ConsoleMVU.Contracts.FeatureUpdateResult
 //Op: End
 module GitStatusScreen =
     type GitStatusDisplayConfig =
         {
             SelectedFileSymbol: string
         }
+
+    type GitStatusFeatureModel =
+        {
+            GitInfo: GitInfo
+            Screen: Screen
+            DirtyScreen: bool
+        }
+
+    let private toFeatureModel (model: Model) : GitStatusFeatureModel =
+        {
+            GitInfo = model.GitInfo
+            Screen = model.Screen
+            DirtyScreen = model.Window.DirtyScreen
+        }
+
+    let private fromFeatureModel (featureModel: GitStatusFeatureModel) (model: Model) : Model =
+        {
+            model with
+                GitInfo = featureModel.GitInfo
+        }
+        |> fun x -> x.SetDirty featureModel.DirtyScreen
 
     let mutable reTriggerMonitor = fun () -> ()
     let startMonitor dirs =
@@ -64,7 +88,7 @@ module GitStatusScreen =
             w("FilePath", m.SelectedFile </> _.FilePath <!> "NoFile")
             w("FullPath", m.SelectedFile </> _.FullPath <!> "NoFile")
 
-    let private update (io: IO.IOActions) (model: Model) (msg: GitStatusMsg) =
+    let private updateFeatureModel (io: IO.IOActions) (model: GitStatusFeatureModel) (msg: GitStatusMsg) : FeatureUpdateResult<GitStatusFeatureModel, Msg> =
         let gm = model.GitInfo
         let getVisibleFiles () : SelectableFile list =
             gm.GitStatuses
@@ -80,13 +104,12 @@ module GitStatusScreen =
                 |> Map.map
                     ^ fun _ meta ->
                         { meta with Visibility = if meta.Visibility <> Hidden then newVisibility else meta.Visibility }
-                |> gm.SetGitStatusMeta
-                |> model.SetGitInfo
+                |> fun x -> { model with GitInfo = gm.SetGitStatusMeta x }
+                |> fun x -> { x with DirtyScreen = true }
 
             match action with
-            | ExpandAll -> setVis Visibility.Visible
-            | CollapseAll -> setVis Visibility.Collapsed
-            |> fun x -> x.SetDirty true
+            | ExpandAll -> setVis Visibility.Visible |> noEffects
+            | CollapseAll -> setVis Visibility.Collapsed |> noEffects
         | ActOnSelectedReport action ->
             gm.SelectedGitStatus
             </> fun (selectedStatus: GitRepoStatusReport) ->
@@ -113,74 +136,92 @@ module GitStatusScreen =
                                 meta with Visibility = if meta.Visibility = Visibility.Collapsed then Visibility.Visible else Visibility.Collapsed
                             }
                         CLEAR $"Toggling expand for {selectedStatus.Path} to {newMeta.Visibility}"
-                        model.GitInfo.GitStatusMeta
+                        gm.GitStatusMeta
                         |> Map.add (selectedStatus.GetGitStatusMetaKey()) newMeta
-                        |> model.GitInfo.SetGitStatusMeta
-                        |> model.SetGitInfo
+                        |> fun x -> { model with GitInfo = gm.SetGitStatusMeta x }
             <!> model
-        | TrySetSelectedGitRepoStatus x ->
-            model.GitInfo.GitStatuses
-            |> List.tryFind ^ fun y -> y.Path.ToLower().TrimEnd('\\') = x.ToLower().TrimEnd('\\')
-            <|> fun x -> x |> Some |> SetSelectedGitRepoStatus |> GitStatusMsg |> post
+            |> noEffects
 
-            model
+        | TrySetSelectedGitRepoStatus x ->
+            let effects =
+                gm.GitStatuses
+                |> List.tryFind ^ fun y -> y.Path.ToLower().TrimEnd('\\') = x.ToLower().TrimEnd('\\')
+                |> Option.map (fun x -> FeatureEffect.Dispatch (GitStatusMsg (SetSelectedGitRepoStatus (Some x))))
+                |> Option.toList
+
+            {
+                Model = model
+                Effects = effects
+            }
         | SetGitStatus newGitStatuses ->
             let newGitStatuses = newGitStatuses |> List.sortBy _.Path.ToLower()
+            let effects = System.Collections.Generic.List<FeatureEffect<Msg>>()
 
-            if gm.GitStatuses = newGitStatuses then
-                if model.Screen = GitStatus then
-                    match newGitStatuses with
-                    | [] ->
-                        GalleryMsg.Show
-                        |> GalleryMsg
-                        |> post
-                    | _ -> ()
+            let baseModel =
+                if gm.GitStatuses = newGitStatuses then
+                    if model.Screen = GitStatus then
+                        match newGitStatuses with
+                        | [] -> effects.Add(FeatureEffect.Dispatch (GalleryMsg GalleryMsg.Show))
+                        | _ -> ()
 
-                model
-            else
-                let selected =
-                    match newGitStatuses with
-                    | [] ->
-                        GalleryMsg.Show
-                        |> GalleryMsg
-                        |> post
+                    model
+                else
+                    let selected =
+                        match newGitStatuses with
+                        | [] ->
+                            effects.Add(FeatureEffect.Dispatch (GalleryMsg GalleryMsg.Show))
 
-                        model.GitInfo.SelectedGitStatus
-                    | x :: xs ->
-                        if model.Screen = Gallery then goToScreen GitStatus |> post
-                        post (GlobalMsg ClearScreen)
-                        model.GitInfo.SelectedGitStatus
-                        |> function
-                        | Some x -> Some x
-                        | None -> Some x
+                            gm.SelectedGitStatus
+                        | x :: _ ->
+                            if model.Screen = Gallery then effects.Add(FeatureEffect.Dispatch (goToScreen GitStatus))
+                            effects.Add(FeatureEffect.Dispatch (GlobalMsg ClearScreen))
+                            gm.SelectedGitStatus
+                            |> function
+                            | Some x -> Some x
+                            | None -> Some x
 
-                { model.GitInfo with
-                    SelectedGitStatus = selected
-                    GitStatuses = newGitStatuses
-                }
-                |> model.SetGitInfo
-            |> fun x ->
-                let curMeta =
-                    x.GitInfo.GitStatusMeta
-                let newMeta =
-                    x.GitInfo.GitStatuses
-                    |+| fun x ->
-                            x.GetGitStatusMetaKey()
-                            |> curMeta.TryFind
-                            <!> GitRepoStatusReportMeta.Default
-                            |> fun xx -> x.GetGitStatusMetaKey(), xx
-                    |> Map.ofList
-                x.GitInfo.SetGitStatusMeta newMeta
-                |> x.SetGitInfo
+                    {
+                        model with
+                            GitInfo =
+                                {
+                                    gm with
+                                        SelectedGitStatus = selected
+                                        GitStatuses = newGitStatuses
+                                }
+                    }
+
+            let curMeta =
+                baseModel.GitInfo.GitStatusMeta
+            let newMeta =
+                baseModel.GitInfo.GitStatuses
+                |+| fun x ->
+                        x.GetGitStatusMetaKey()
+                        |> curMeta.TryFind
+                        <!> GitRepoStatusReportMeta.Default
+                        |> fun xx -> x.GetGitStatusMetaKey(), xx
+                |> Map.ofList
+
+            {
+                Model =
+                    {
+                        baseModel with
+                            GitInfo = baseModel.GitInfo.SetGitStatusMeta newMeta
+                    }
+                Effects = effects |> Seq.toList
+            }
         | SetSelectedGitRepoStatus maybeRepo ->
-            maybeRepo
-            |> model.GitInfo.SetSelectedGitStatus
-            |> model.SetGitInfo
+            {
+                model with
+                    GitInfo = gm.SetSelectedGitStatus maybeRepo
+            }
+            |> noEffects
         | SetSelectedFile maybeFile ->
-            model.GitInfo.SetSelectedFile maybeFile
-            |> model.SetGitInfo
+            {
+                model with
+                    GitInfo = gm.SetSelectedFile maybeFile
+            }
+            |> noEffects
         | VerticalSelectionChange mode ->
-            let gm = model.GitInfo
             match gm.Side with
             | CursorSide.Left ->
                 let newSelectedRepo =
@@ -214,106 +255,134 @@ module GitStatusScreen =
                             |> Some
                         with _ -> None
 
-                newSelectedRepo |> SetSelectedGitRepoStatus |> GitStatusMsg |> post
-                model
+                let effects =
+                    newSelectedRepo
+                    |> Option.map (fun x -> FeatureEffect.Dispatch (GitStatusMsg (SetSelectedGitRepoStatus (Some x))))
+                    |> Option.toList
+
+                {
+                    Model = model
+                    Effects = effects
+                }
             | CursorSide.Right ->
                 let visibleFiles = getVisibleFiles() |+| _.FilePath
-                match mode with
-                | VerticalSelectionChange.Up ->
-                    gm.SelectedFile
-                    |> function
-                    | Some currentFile ->
-                        visibleFiles
-                        |> List.tryFindIndex ((=) currentFile.FilePath)
-                        <!> visibleFiles.Length - 1
-                        |> fun x -> x - 1
-                        |> swap List.tryItem visibleFiles
+                let nextFile =
+                    match mode with
+                    | VerticalSelectionChange.Up ->
+                        gm.SelectedFile
                         |> function
-                        | Some x -> Some x
-                        | None -> visibleFiles.[visibleFiles.Length - 1] |> Some
-                    | None ->
-                        visibleFiles.[visibleFiles.Length - 1]
-                        |> Some
-                | VerticalSelectionChange.Down ->
-                    gm.SelectedFile
-                    |> function
-                    | Some currentFile ->
-                        visibleFiles
-                        |> List.tryFindIndex ((=) currentFile.FilePath)
-                        <!> -1
-                        |> fun x -> x + 1
-                        |> swap List.tryItem visibleFiles
+                        | Some currentFile ->
+                            visibleFiles
+                            |> List.tryFindIndex ((=) currentFile.FilePath)
+                            <!> visibleFiles.Length - 1
+                            |> fun x -> x - 1
+                            |> swap List.tryItem visibleFiles
+                            |> function
+                            | Some x -> Some x
+                            | None -> visibleFiles.[visibleFiles.Length - 1] |> Some
+                        | None ->
+                            visibleFiles.[visibleFiles.Length - 1]
+                            |> Some
+                    | VerticalSelectionChange.Down ->
+                        gm.SelectedFile
                         |> function
-                        | Some x -> Some x
-                        | None -> visibleFiles.[0] |> Some
-                    | None ->
-                        visibleFiles.[0]
-                        |> Some
-                |> id
-                <|> fun x ->
-                    {
-                        SelectableFile.RepoPath = gm.SelectedGitStatus.Value.Path
-                        SelectableFile.FilePath = x
-                    }
-                    |> Some
-                    |> SetSelectedFile
-                    |> GitStatusMsg
-                    |> post
+                        | Some currentFile ->
+                            visibleFiles
+                            |> List.tryFindIndex ((=) currentFile.FilePath)
+                            <!> -1
+                            |> fun x -> x + 1
+                            |> swap List.tryItem visibleFiles
+                            |> function
+                            | Some x -> Some x
+                            | None -> visibleFiles.[0] |> Some
+                        | None ->
+                            visibleFiles.[0]
+                            |> Some
 
-                model
+                let effects =
+                    nextFile
+                    </> fun x ->
+                            {
+                                SelectableFile.RepoPath = gm.SelectedGitStatus.Value.Path
+                                SelectableFile.FilePath = x
+                            }
+                    |> Option.map (fun x -> FeatureEffect.Dispatch (GitStatusMsg (SetSelectedFile (Some x))))
+                    |> Option.toList
+
+                {
+                    Model = model
+                    Effects = effects
+                }
         | HorizSelectionChange mode ->
-            model.GitInfo.SelectedFile
-            |> function
-            | Some _ -> ()
-            | None ->
-                getVisibleFiles()
-                |> List.tryHead
-                </> _.FilePath
-                </> fun x ->
-                    {
-                        SelectableFile.RepoPath = gm.SelectedGitStatus.Value.Path
-                        SelectableFile.FilePath = x
-                    }
-                |> SetSelectedFile
-                |> GitStatusMsg
-                |> post
+            let effects =
+                match gm.SelectedFile with
+                | Some _ -> []
+                | None ->
+                    getVisibleFiles()
+                    |> List.tryHead
+                    </> _.FilePath
+                    </> fun x ->
+                            {
+                                SelectableFile.RepoPath = gm.SelectedGitStatus.Value.Path
+                                SelectableFile.FilePath = x
+                            }
+                    |> Option.map (fun x -> FeatureEffect.Dispatch (GitStatusMsg (SetSelectedFile (Some x))))
+                    |> Option.toList
 
-            { model.GitInfo with Side = mode }
-            |> model.SetGitInfo
+            {
+                Model =
+                    {
+                        model with
+                            GitInfo = { gm with Side = mode }
+                    }
+                Effects = effects
+            }
         | IOAction action ->
             match action with
             | Explore ->
-                model.GitInfo.Side
+                gm.Side
                 |> function
                 | CursorSide.Left ->
-                    model.GitInfo.SelectedGitStatus
+                    gm.SelectedGitStatus
                     <|> fun selectedStatus ->
                             selectedStatus.Path
                             |> DI
                             |> io.ExploreDirectoryInFileExplorer
                 | CursorSide.Right ->
-                    model.GitInfo.SelectedFile
+                    gm.SelectedFile
                     <|> fun selectedFile ->
                             selectedFile.FullPath
                             |> FI
                             |> io.ExploreInFileExplorer
-            model
+
+            noEffects model
         | ActOnSelectedFile action ->
             model.GitInfo.SelectedFile
             <|> fun selectedFile ->
                     let selectedFile = selectedFile.FullPath
-                    let git filePath = filePath |> io.RunGitCommand (DI model.GitInfo.SelectedGitStatus.Value.Path)
+                    let git filePath = filePath |> io.RunGitCommand (DI gm.SelectedGitStatus.Value.Path)
                     match action with
-                    | StageFile -> git $"add \"%s{selectedFile}\"";
+                    | StageFile -> git $"add \"%s{selectedFile}\""
                     | DiffFile -> git $"difftool -- %s{selectedFile}"
                     | UnstageFile -> git $"reset HEAD \"%s{selectedFile}\""
                     | OpenInEditor -> io.OpenInEditor(FI selectedFile)
 
-                    RecheckGitStatus |> GitStatusMsg |> post
-            model
+            {
+                Model = model
+                Effects = [ FeatureEffect.Dispatch (GitStatusMsg RecheckGitStatus) ]
+            }
         | RecheckGitStatus ->
             reTriggerMonitor()
-            model
+            noEffects model
+
+    let private update (io: IO.IOActions) (model: Model) (msg: GitStatusMsg) =
+        let featureModel = toFeatureModel model
+        let result = updateFeatureModel io featureModel msg
+
+        result.Effects
+        |> EffectRunner.run post
+
+        fromFeatureModel result.Model model
 
     let hotkeys (gitModel: GitInfo) =
         let isRight = gitModel.Side = CursorSide.Right

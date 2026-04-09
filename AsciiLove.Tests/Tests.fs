@@ -124,3 +124,23 @@ type ``MVU Tests``() =
         let init = AsciiLove.Main.init
         AsciiLove.Screens.GalleryScreen.update init (SetDisplayMode ArtDomain.ArtDisplayMode.Text)
         |> should equal { init with ArtSettings = { init.ArtSettings with ArtDisplayMode = ArtDomain.ArtDisplayMode.Text } }
+
+    [<Fact>]
+    member _.``GitStatusScreen horizontal change still updates side``() =
+        let init = AsciiLove.Main.init
+        let io =
+            {
+                IO.IOActions.ExploreInFileExplorer = fun _ -> failwith "Not expected to be called"
+                IO.IOActions.ExploreDirectoryInFileExplorer = fun _ -> failwith "Not expected to be called"
+                IO.IOActions.OpenInEditor = fun _ -> failwith "Not expected to be called"
+                IO.IOActions.SerializeIndented = fun _ -> failwith "Not expected to be called"
+                IO.IOActions.RunGitCommand = fun _ -> failwith "Not expected to be called"
+            }
+        let displayConfig : Screens.GitStatusScreen.GitStatusDisplayConfig =
+            {
+                SelectedFileSymbol = ">"
+            }
+        let gsd = Screens.GitStatusScreen.getScreenDef io false displayConfig
+
+        gsd.Update init (HorizSelectionChange CursorSide.Right)
+        |> should equal ({ init with GitInfo = { init.GitInfo with Side = CursorSide.Right } })
