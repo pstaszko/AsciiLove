@@ -112,3 +112,15 @@ type ``MVU Tests``() =
         let init = AsciiLove.Main.init
         AsciiLove.Screens.SettingsScreen.update init IncIncrementStep
         |> should equal { init with Settings = { init.Settings with IncrementStep = init.Settings.IncrementStep + 1 } }
+
+    [<Fact>]
+    member _.``HelpScreen update keeps model unchanged``() =
+        let init = AsciiLove.Main.init
+        AsciiLove.Screens.HelpScreen.update init CloseHelp
+        |> should equal init
+
+    [<Fact>]
+    member _.``GalleryScreen set display mode still updates art settings``() =
+        let init = AsciiLove.Main.init
+        AsciiLove.Screens.GalleryScreen.update init (SetDisplayMode ArtDomain.ArtDisplayMode.Text)
+        |> should equal { init with ArtSettings = { init.ArtSettings with ArtDisplayMode = ArtDomain.ArtDisplayMode.Text } }

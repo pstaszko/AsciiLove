@@ -8,12 +8,182 @@ open AsciiLove.ArtDomain
 open AsciiLove.Domain
 open AsciiLove.Messages
 open Atomic.Operators
+open ConsoleMVU.Contracts
+open ConsoleMVU.Contracts.FeatureUpdateResult
+open ConsoleMVU.Runtime
 
 open AsciiLove
 
 open Spectre.Console
 //Op: End
 module GalleryScreen =
+    type GalleryFeatureModel =
+        {
+            ArtSettings: ArtSettings
+            DirtyScreen: bool
+        }
+
+    let private toFeatureModel (model: Model) : GalleryFeatureModel =
+        {
+            ArtSettings = model.ArtSettings
+            DirtyScreen = model.Window.DirtyScreen
+        }
+
+    let private fromFeatureModel (featureModel: GalleryFeatureModel) (model: Model) : Model =
+        { model with ArtSettings = featureModel.ArtSettings }
+        |> fun x -> x.SetDirty featureModel.DirtyScreen
+
+    let private updateFeatureModel (model: GalleryFeatureModel) (msg: GalleryMsg) : FeatureUpdateResult<GalleryFeatureModel, Msg> =
+
+        let openExplorerToFile (path: string) =
+            let psi = new ProcessStartInfo("explorer.exe", $"/select,{path}")
+            psi.UseShellExecute <- true
+            psi
+            |> Process.Start
+            |> ignore
+
+        let shellExecute (p: string) =
+            let psi = new ProcessStartInfo(p)
+            psi.UseShellExecute <- true
+            psi
+            |> Process.Start
+            |> ignore
+
+        match msg with
+        | CheckForChanges ->
+            model.ArtSettings.CurrentArt
+            |> Option.map
+                ^ fun art ->
+                    if art.TxtLastWrite < File.GetLastWriteTime(art.TxtFullPath) then
+                        let artWithoutCurrent = model.ArtSettings.AllArt |> List.filter (fun a -> a <> art)
+                        let reloadedCurrentArt = pathToArt art.Color art.TxtFullPath
+
+                        {
+                            model with
+                                ArtSettings =
+                                    {
+                                        model.ArtSettings with
+                                            AllArt = reloadedCurrentArt :: artWithoutCurrent
+                                            CurrentArt = Some reloadedCurrentArt
+                                    }
+                        }
+                    else
+                        model
+            |> Option.defaultValue model
+            |> noEffects
+
+        | OpenImageFileIfExists ->
+            model.ArtSettings.CurrentArt
+            |> Option.bind _.Image
+            <|> shellExecute
+
+            noEffects model
+        | ExploreImageText ->
+            model.ArtSettings.CurrentArt
+            </> _.TxtFullPath
+            </> openExplorerToFile
+            |> ignore
+
+            noEffects model
+        | OpenImageText ->
+            model.ArtSettings.CurrentArt
+            </> _.TxtFullPath
+            <|> shellExecute
+
+            noEffects model
+        | SetDisplayMode mode ->
+            {
+                model with
+                    ArtSettings =
+                        {
+                            model.ArtSettings with
+                                ArtDisplayMode = mode
+                        }
+            }
+            |> noEffects
+        | SetFilter filter ->
+            {
+                Model =
+                    {
+                        model with
+                            ArtSettings =
+                                {
+                                    model.ArtSettings with
+                                        ArtFilter = filter
+                                }
+                    }
+                Effects =
+                    [
+                        FeatureEffect.Dispatch(GlobalMsg GlobalMsg.ClearScreen)
+                        FeatureEffect.Dispatch(GalleryMsg SetRandomArt)
+                    ]
+            }
+        | Next ->
+            let nextArt = model.ArtSettings.NextArt()
+            match nextArt with
+            | Some art ->
+                {
+                    model with
+                        ArtSettings =
+                            {
+                                model.ArtSettings with
+                                    CurrentArt = Some art
+                            }
+                }
+                |> noEffects
+            | None ->
+                noEffects model
+        | Previous ->
+            let previousArt = model.ArtSettings.PreviousArt()
+            match previousArt with
+            | Some art ->
+                {
+                    model with
+                        ArtSettings =
+                            {
+                                model.ArtSettings with
+                                    CurrentArt = Some art
+                            }
+                }
+                |> noEffects
+            | None ->
+                noEffects model
+        //Op: Auto
+        | SetRandomArt -> { model with ArtSettings = model.ArtSettings.SetRandomArt() } |> noEffects
+        | ClearArt     -> { model with ArtSettings = { model.ArtSettings with CurrentArt = None } } |> noEffects
+        | LoadArt      -> { model with ArtSettings = { model.ArtSettings with AllArt = getAllArt() } } |> noEffects
+        //Op: End
+        | Show ->
+            {
+                Model = model
+                Effects =
+                    [
+                        FeatureEffect.Dispatch(GalleryMsg LoadArt)
+                        FeatureEffect.Dispatch(GlobalMsg GlobalMsg.ClearScreen)
+                        FeatureEffect.Dispatch(GalleryMsg SetRandomArt)
+                        FeatureEffect.Dispatch(goToScreen Gallery)
+                    ]
+            }
+        | DisplayArt art ->
+            let dirty =
+                match model.ArtSettings.CurrentArt with
+                | Some currentArt when currentArt = art -> false
+                | _ -> true
+
+            {
+                Model =
+                    {
+                        model with
+                            ArtSettings =
+                                {
+                                    model.ArtSettings with
+                                        CurrentArt = Some art
+                                }
+                            DirtyScreen = dirty
+                    }
+                Effects = []
+            }
+
     module ColorPrint =
         let printWithColor (color: string) (line: string) =
             let reset = "\u001b[0m"
@@ -39,89 +209,13 @@ module GalleryScreen =
             | ArtDisplayMode.ImageIfAvailable, None -> printText()
 
     let update (model: Model) (msg: GalleryMsg) =
-        let openExplorerToFile (path: string) =
-            let psi = new ProcessStartInfo("explorer.exe", $"/select,{path}")
-            psi.UseShellExecute <- true
-            psi
-            |> Process.Start
-            |> ignore
+        let featureModel = toFeatureModel model
+        let result = updateFeatureModel featureModel msg
 
-        let shellExecute (p: string) =
-            let psi = new ProcessStartInfo(p)
-            psi.UseShellExecute <- true
-            psi
-            |> Process.Start
-            |> ignore
+        result.Effects
+        |> EffectRunner.run post
 
-        match msg with
-        | CheckForChanges ->
-            model.ArtSettings.CurrentArt
-            |> Option.map
-                ^ fun art ->
-                    if art.TxtLastWrite < File.GetLastWriteTime(art.TxtFullPath) then
-                        let artWithoutCurrent = model.ArtSettings.AllArt |> List.filter (fun a -> a <> art)
-                        let reloadedCurrentArt = pathToArt art.Color art.TxtFullPath
-
-                        { model with ArtSettings = { model.ArtSettings with AllArt = reloadedCurrentArt :: artWithoutCurrent; CurrentArt = Some reloadedCurrentArt } }
-                    else
-                        model
-            |> Option.defaultValue model
-
-        | OpenImageFileIfExists ->
-            model.ArtSettings.CurrentArt
-            |> Option.bind _.Image
-            </> shellExecute
-            |> ignore
-
-            model
-        | ExploreImageText ->
-            model.ArtSettings.CurrentArt
-            </> _.TxtFullPath
-            </> openExplorerToFile
-            |> fun x -> x
-            |> ignore
-
-            model
-        | OpenImageText ->
-            model.ArtSettings.CurrentArt
-            </> _.TxtFullPath
-            <|> shellExecute
-
-            model
-        | SetDisplayMode mode ->
-            { model with ArtSettings = { model.ArtSettings with ArtDisplayMode = mode } }
-        | SetFilter filter ->
-            post (GlobalMsg GlobalMsg.ClearScreen)
-            post (GalleryMsg SetRandomArt)
-            { model with ArtSettings = { model.ArtSettings with ArtFilter = filter } }
-        | Next ->
-            let nextArt = model.ArtSettings.NextArt()
-            match nextArt with
-            | Some art -> { model with ArtSettings = { model.ArtSettings with CurrentArt = Some art } }
-            | None     -> model
-        | Previous ->
-            let previousArt = model.ArtSettings.PreviousArt()
-            match previousArt with
-            | Some art -> { model with ArtSettings = { model.ArtSettings with CurrentArt = Some art } }
-            | None     -> model
-        //Op: Auto
-        | SetRandomArt -> { model with ArtSettings = model.ArtSettings.SetRandomArt() }
-        | ClearArt     -> { model with ArtSettings = { model.ArtSettings with CurrentArt = None } }
-        | LoadArt      -> { model with ArtSettings = { model.ArtSettings with AllArt = getAllArt() } }
-        //Op: End
-        | Show ->
-            GalleryMsg LoadArt |> post
-            GlobalMsg GlobalMsg.ClearScreen |> post
-            GalleryMsg SetRandomArt |> post
-            goToScreen Gallery |> post
-            model
-        | DisplayArt art ->
-            let dirty =
-                match model.ArtSettings.CurrentArt with
-                | Some currentArt when currentArt = art -> false
-                | _ -> true
-            { model with ArtSettings = { model.ArtSettings with CurrentArt = Some art } }
-            |> fun x -> x.SetDirty dirty
+        fromFeatureModel result.Model model
 
     let hotkeys =
         [
