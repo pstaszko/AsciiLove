@@ -3,6 +3,7 @@ namespace AsciiLove.Screens
 open System
 
 open ConsoleMVU.Contracts
+open ConsoleMVU.Runtime
 
 open AsciiLove
 //Op: End
@@ -54,9 +55,13 @@ module SettingsScreen =
         Console_WriteLine($"Decrement step: %i{model.Settings.DecrementStep} ([ / ])    ")
 
     let update (model: Model) (msg: SettingsMsg) =
-        let featureModel = toFeatureModel model
-        let result = updateFeatureModel featureModel msg
-        fromFeatureModel result.Model model
+        FeatureAdapter.update
+            toFeatureModel
+            fromFeatureModel
+            updateFeatureModel
+            (fun _ -> ())
+            model
+            msg
 
     let hotkeys =
         [

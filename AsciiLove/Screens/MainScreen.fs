@@ -73,13 +73,13 @@ module MainScreen =
         Console_WriteLine($"Increment step: %i{model.Settings.IncrementStep}  Decrement step: %i{model.Settings.DecrementStep}")
 
     let update (model: Model) (msg: MainMsg) : Model =
-        let featureModel = toFeatureModel model
-        let result = updateFeatureModel featureModel msg
-
-        result.Effects
-        |> EffectRunner.run (MainMsg >> post)
-
-        fromFeatureModel result.Model model
+        FeatureAdapter.update
+            toFeatureModel
+            fromFeatureModel
+            updateFeatureModel
+            (MainMsg >> post)
+            model
+            msg
 
     let hotkeys =
         [

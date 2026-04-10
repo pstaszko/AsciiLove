@@ -376,13 +376,13 @@ module GitStatusScreen =
             noEffects model
 
     let private update (io: IO.IOActions) (model: Model) (msg: GitStatusMsg) =
-        let featureModel = toFeatureModel model
-        let result = updateFeatureModel io featureModel msg
-
-        result.Effects
-        |> EffectRunner.run post
-
-        fromFeatureModel result.Model model
+        FeatureAdapter.update
+            toFeatureModel
+            fromFeatureModel
+            (updateFeatureModel io)
+            post
+            model
+            msg
 
     let hotkeys (gitModel: GitInfo) =
         let isRight = gitModel.Side = CursorSide.Right

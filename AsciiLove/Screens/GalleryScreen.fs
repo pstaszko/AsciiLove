@@ -209,13 +209,13 @@ module GalleryScreen =
             | ArtDisplayMode.ImageIfAvailable, None -> printText()
 
     let update (model: Model) (msg: GalleryMsg) =
-        let featureModel = toFeatureModel model
-        let result = updateFeatureModel featureModel msg
-
-        result.Effects
-        |> EffectRunner.run post
-
-        fromFeatureModel result.Model model
+        FeatureAdapter.update
+            toFeatureModel
+            fromFeatureModel
+            updateFeatureModel
+            post
+            model
+            msg
 
     let hotkeys =
         [

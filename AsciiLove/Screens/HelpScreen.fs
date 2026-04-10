@@ -22,10 +22,13 @@ module HelpScreen =
         Console_WriteLine("this is a dummy screen for example purposes")
 
     let update (model: Model) (msg: HelpMsg) =
-        let result = updateFeatureModel () msg
-        result.Effects
-        |> EffectRunner.run post
-        model
+        FeatureAdapter.update
+            (fun (_: Model) -> ())
+            (fun (_: HelpFeatureModel) (rootModel: Model) -> rootModel)
+            updateFeatureModel
+            post
+            model
+            msg
 
     let hotkeys =
         [
