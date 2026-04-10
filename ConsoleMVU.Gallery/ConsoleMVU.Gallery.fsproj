@@ -4,9 +4,17 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="paket.references" />
     <Compile Include="Core\GalleryDomain.fs" />
     <Compile Include="Core\GalleryMessages.fs" />
+    <Compile Include="Core\GalleryFeature.fs" />
+    <Compile Include="Console\GalleryHotkeys.fs" />
+    <Compile Include="Console\GalleryConsoleView.fs" />
     <Compile Include="Console\GalleryConsole.fs" />
     <Compile Include="GalleryFeature.fs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ConsoleMVU.Contracts\ConsoleMVU.Contracts.fsproj" />
+  </ItemGroup>
+  <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>
