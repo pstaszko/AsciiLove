@@ -26,6 +26,7 @@
     <Compile Include="Main.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ConsoleMVU.Gallery\ConsoleMVU.Gallery.fsproj" />
     <ProjectReference Include="..\ConsoleMVU.Contracts\ConsoleMVU.Contracts.fsproj" />
     <ProjectReference Include="..\ConsoleMVU.Runtime\ConsoleMVU.Runtime.fsproj" />
     <ProjectReference Include="..\..\..\Starly\Atomic.Operators\Atomic.Operators\Atomic.Operators.fsproj" />

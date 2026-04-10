@@ -6,7 +6,7 @@ open System.Threading
 
 open Atomic.Operators
 
-open ArtDomain
+open ConsoleMVU.Gallery.GalleryDomain
 open Domain
 open IO
 
@@ -118,7 +118,7 @@ module Main =
                     HotkeyText_Specific = []
                     ShowModel = false
                 }
-            ArtSettings = ArtDomain.ArtSettings.Empty
+            ArtSettings = ArtSettings.Empty
             GitInfo = {
                 GitStatuses = []
                 SelectedGitStatus = None

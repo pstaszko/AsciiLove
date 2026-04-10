@@ -4,11 +4,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Core\GalleryCore.fs" />
+    <Compile Include="Core\GalleryDomain.fs" />
+    <Compile Include="Core\GalleryMessages.fs" />
     <Compile Include="Console\GalleryConsole.fs" />
     <Compile Include="GalleryFeature.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AsciiLove\AsciiLove.fsproj" />
   </ItemGroup>
 </Project>

@@ -4,7 +4,7 @@ open System
 open System.Diagnostics
 open System.IO
 
-open AsciiLove.ArtDomain
+open ConsoleMVU.Gallery.GalleryDomain
 open AsciiLove.Domain
 open AsciiLove.Messages
 open Atomic.Operators

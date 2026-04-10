@@ -1,8 +1,8 @@
 namespace ConsoleMVU.Gallery
 
-open AsciiLove
+open GalleryDomain
+open GalleryMessages
 
 module GalleryFeature =
-    let view = Console.GalleryConsole.view
-    let update = Core.GalleryCore.update
-    let hotkeys = Console.GalleryConsole.hotkeys
+    type State = ArtSettings
+    type Msg = GalleryMsg
