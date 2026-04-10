@@ -21,6 +21,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ConsoleMVU.Contracts", "Con
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ConsoleMVU.Runtime", "ConsoleMVU.Runtime\ConsoleMVU.Runtime.fsproj", "{4412CCE9-4609-4DA8-97A0-827D517E18E3}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ConsoleMVU.Gallery", "ConsoleMVU.Gallery\ConsoleMVU.Gallery.fsproj", "{2057E283-7D65-4819-9DCA-34642E3EE96D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,6 +105,18 @@ Global
 		{4412CCE9-4609-4DA8-97A0-827D517E18E3}.Release|x64.Build.0 = Release|Any CPU
 		{4412CCE9-4609-4DA8-97A0-827D517E18E3}.Release|x86.ActiveCfg = Release|Any CPU
 		{4412CCE9-4609-4DA8-97A0-827D517E18E3}.Release|x86.Build.0 = Release|Any CPU
+		{2057E283-7D65-4819-9DCA-34642E3EE96D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2057E283-7D65-4819-9DCA-34642E3EE96D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2057E283-7D65-4819-9DCA-34642E3EE96D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2057E283-7D65-4819-9DCA-34642E3EE96D}.Debug|x64.Build.0 = Debug|Any CPU
+		{2057E283-7D65-4819-9DCA-34642E3EE96D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2057E283-7D65-4819-9DCA-34642E3EE96D}.Debug|x86.Build.0 = Debug|Any CPU
+		{2057E283-7D65-4819-9DCA-34642E3EE96D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2057E283-7D65-4819-9DCA-34642E3EE96D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2057E283-7D65-4819-9DCA-34642E3EE96D}.Release|x64.ActiveCfg = Release|Any CPU
+		{2057E283-7D65-4819-9DCA-34642E3EE96D}.Release|x64.Build.0 = Release|Any CPU
+		{2057E283-7D65-4819-9DCA-34642E3EE96D}.Release|x86.ActiveCfg = Release|Any CPU
+		{2057E283-7D65-4819-9DCA-34642E3EE96D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
