@@ -8,30 +8,12 @@ open ConsoleMVU.Runtime
 open AsciiLove
 //Op: End
 module SettingsScreen =
-    type SettingsFeatureModel =
-        {
-            IncrementStep: int
-            DecrementStep: int
-        }
+    let private settingsSlice =
+        FeatureMapping.slice
+            (fun (model: Model) -> model.Settings)
+            (fun settings (model: Model) -> { model with Settings = settings })
 
-    let private toFeatureModel (model: Model) : SettingsFeatureModel =
-        {
-            IncrementStep = model.Settings.IncrementStep
-            DecrementStep = model.Settings.DecrementStep
-        }
-
-    let private fromFeatureModel (featureModel: SettingsFeatureModel) (model: Model) : Model =
-        {
-            model with
-                Settings =
-                    {
-                        model.Settings with
-                            IncrementStep = featureModel.IncrementStep
-                            DecrementStep = featureModel.DecrementStep
-                    }
-        }
-
-    let private updateFeatureModel (model: SettingsFeatureModel) (msg: SettingsMsg) : FeatureUpdateResult<SettingsFeatureModel, SettingsMsg> =
+    let private updateFeatureModel (model: SavedSettings) (msg: SettingsMsg) : FeatureUpdateResult<SavedSettings, SettingsMsg> =
         let updatedModel =
             match msg with
             | IncIncrementStep ->
@@ -55,9 +37,8 @@ module SettingsScreen =
         Console_WriteLine($"Decrement step: %i{model.Settings.DecrementStep} ([ / ])    ")
 
     let update (model: Model) (msg: SettingsMsg) =
-        FeatureAdapter.update
-            toFeatureModel
-            fromFeatureModel
+        FeatureMapping.updateSlice
+            settingsSlice
             updateFeatureModel
             (fun _ -> ())
             model

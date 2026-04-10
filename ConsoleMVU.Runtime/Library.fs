@@ -28,3 +28,43 @@ module FeatureAdapter =
         |> EffectRunner.run dispatch
 
         fromFeatureModel result.Model model
+
+module FeatureMapping =
+    type Slice<'rootModel, 'sliceModel> =
+        {
+            Get: 'rootModel -> 'sliceModel
+            Set: 'sliceModel -> 'rootModel -> 'rootModel
+        }
+
+    let slice get setFn =
+        {
+            Get = get
+            Set = setFn
+        }
+
+    let updateSlice
+        (mapping: Slice<'rootModel, 'sliceModel>)
+        (updateFeatureModel: 'sliceModel -> 'featureMsg -> FeatureUpdateResult<'sliceModel, 'dispatchMsg>)
+        (dispatch: 'dispatchMsg -> unit)
+        (model: 'rootModel)
+        (msg: 'featureMsg) : 'rootModel =
+        FeatureAdapter.update
+            mapping.Get
+            mapping.Set
+            updateFeatureModel
+            dispatch
+            model
+            msg
+
+    let updateStateless
+        (updateFeatureModel: unit -> 'featureMsg -> FeatureUpdateResult<unit, 'dispatchMsg>)
+        (dispatch: 'dispatchMsg -> unit)
+        (model: 'rootModel)
+        (msg: 'featureMsg) : 'rootModel =
+        FeatureAdapter.update
+            (fun (_: 'rootModel) -> ())
+            (fun (_: unit) (rootModel: 'rootModel) -> rootModel)
+            updateFeatureModel
+            dispatch
+            model
+            msg

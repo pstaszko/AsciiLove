@@ -22,9 +22,7 @@ module HelpScreen =
         Console_WriteLine("this is a dummy screen for example purposes")
 
     let update (model: Model) (msg: HelpMsg) =
-        FeatureAdapter.update
-            (fun (_: Model) -> ())
-            (fun (_: HelpFeatureModel) (rootModel: Model) -> rootModel)
+        FeatureMapping.updateStateless
             updateFeatureModel
             post
             model
