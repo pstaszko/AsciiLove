@@ -10,6 +10,7 @@ open AsciiLove
 
 open FsUnit.Xunit
 open Xunit
+open AsciiLove.GitStatus
 //Op: End
 [<AutoOpen>]
 module Utils =

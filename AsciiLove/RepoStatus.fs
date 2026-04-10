@@ -44,7 +44,7 @@ module RepoStatus =
                     BREAK versionNode
                     0
 
-            let s =
+            let stashEntries =
                 let ss = jsonNode.["Stashes"]
                 ss.AsArray()
                 |> Seq.map
@@ -67,7 +67,7 @@ module RepoStatus =
                 UpstreamGone = jsonNode.["UpstreamGone"].GetValue<bool>()
                 AheadBy      = jsonNode.["AheadBy"].GetValue<int>()
                 BehindBy     = jsonNode.["BehindBy"].GetValue<int>()
-                Stashes      = s
+                Stashes      = stashEntries
                 //Op: End
                 FileBuckets =
                     [

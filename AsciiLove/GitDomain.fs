@@ -1,6 +1,8 @@
 namespace AsciiLove.GitStatus
 //Op: Auto
 open System
+
+open Atomic.Operators
 //Op: End
 [<AutoOpen>]
 module GitDomain =
@@ -93,3 +95,24 @@ module GitDomain =
                 failwith $"The directory '{path}' is not a git repository."
         else
             raise (System.IO.DirectoryNotFoundException($"The directory '{path}' does not exist."))
+
+    [<RequireQualifiedAccess>]
+    type CursorSide =
+        | Right
+        | Left
+
+    type GitInfo =
+        {
+            GitStatuses: GitRepoStatusReport list
+            SelectedGitStatus: GitRepoStatusReport option
+            GitStatusMeta: Map<GitStatusMetaKey, GitRepoStatusReportMeta>
+            Side: CursorSide
+            SelectedFile: SelectableFile option
+        }
+        member this.SetGitStatusMeta x = { this with GitStatusMeta = x }
+        member this.SetSelectedGitStatus x = { this with SelectedGitStatus = x }
+        member this.SetSelectedFile x = { this with SelectedFile = x }
+        member this.GetMetaOrDefault (repoPath: GitStatusMetaKey) =
+            this.GitStatusMeta
+            |> Map.tryFind repoPath
+            <!> GitRepoStatusReportMeta.Default
