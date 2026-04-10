@@ -123,7 +123,7 @@ type ``MVU Tests``() =
     [<Fact>]
     member _.``GalleryScreen set display mode still updates art settings``() =
         let init = AsciiLove.Main.init
-        AsciiLove.Screens.GalleryScreen.update init (SetDisplayMode ConsoleMVU.Gallery.GalleryDomain.ArtDisplayMode.Text)
+        AsciiLove.Screens.GalleryScreen.update init (ConsoleMVU.Gallery.GalleryMessages.SetDisplayMode ConsoleMVU.Gallery.GalleryDomain.ArtDisplayMode.Text)
         |> should equal { init with ArtSettings = { init.ArtSettings with ArtDisplayMode = ConsoleMVU.Gallery.GalleryDomain.ArtDisplayMode.Text } }
 
     [<Fact>]

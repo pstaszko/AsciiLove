@@ -161,7 +161,7 @@ module GitStatusScreen =
                 if gm.GitStatuses = newGitStatuses then
                     if model.Screen = GitStatus then
                         match newGitStatuses with
-                        | [] -> effects.Add(FeatureEffect.Dispatch (GalleryMsg GalleryMsg.Show))
+                        | [] -> effects.Add(FeatureEffect.Dispatch (GalleryMsg ConsoleMVU.Gallery.GalleryMessages.Show))
                         | _ -> ()
 
                     model
@@ -169,7 +169,7 @@ module GitStatusScreen =
                     let selected =
                         match newGitStatuses with
                         | [] ->
-                            effects.Add(FeatureEffect.Dispatch (GalleryMsg GalleryMsg.Show))
+                            effects.Add(FeatureEffect.Dispatch (GalleryMsg ConsoleMVU.Gallery.GalleryMessages.Show))
 
                             gm.SelectedGitStatus
                         | x :: _ ->

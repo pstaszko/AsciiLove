@@ -7,6 +7,7 @@ open System.Threading
 open Atomic.Operators
 
 open ConsoleMVU.Gallery.GalleryDomain
+open ConsoleMVU.Gallery.GalleryMessages
 open Domain
 open IO
 

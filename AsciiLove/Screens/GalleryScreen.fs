@@ -5,6 +5,7 @@ open System.Diagnostics
 open System.IO
 
 open ConsoleMVU.Gallery.GalleryDomain
+open ConsoleMVU.Gallery.GalleryMessages
 open AsciiLove.Domain
 open AsciiLove.Messages
 open Atomic.Operators
@@ -33,7 +34,7 @@ module GalleryScreen =
         { model with ArtSettings = featureModel.ArtSettings }
         |> fun x -> x.SetDirty featureModel.DirtyScreen
 
-    let private updateFeatureModel (model: GalleryFeatureModel) (msg: GalleryMsg) : FeatureUpdateResult<GalleryFeatureModel, Msg> =
+    let private updateFeatureModel (model: GalleryFeatureModel) (msg: ConsoleMVU.Gallery.GalleryMessages.GalleryMsg) : FeatureUpdateResult<GalleryFeatureModel, Msg> =
 
         let openExplorerToFile (path: string) =
             let psi = new ProcessStartInfo("explorer.exe", $"/select,{path}")
@@ -208,7 +209,7 @@ module GalleryScreen =
             | ArtDisplayMode.ImageIfAvailable, Some image -> render 0 image
             | ArtDisplayMode.ImageIfAvailable, None -> printText()
 
-    let update (model: Model) (msg: GalleryMsg) =
+    let update (model: Model) (msg: ConsoleMVU.Gallery.GalleryMessages.GalleryMsg) =
         FeatureAdapter.update
             toFeatureModel
             fromFeatureModel

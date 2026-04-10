@@ -78,21 +78,6 @@ module Messages =
     open Domain
     open ConsoleMVU.Gallery.GalleryDomain
 
-    type GalleryMsg =
-        | SetDisplayMode of ArtDisplayMode
-        | SetFilter of ArtFilter
-        | Next
-        | Previous
-        | Show
-        | LoadArt
-        | SetRandomArt
-        | CheckForChanges
-        | ClearArt
-        | OpenImageText
-        | ExploreImageText
-        | OpenImageFileIfExists
-        | DisplayArt of Art
-
     type GlobalMsg =
         | OpenScreen of Screen
         | SetSize of int
@@ -164,7 +149,7 @@ module Messages =
         | SettingsMsg of SettingsMsg
         | HelpMsg of HelpMsg
         | GlobalMsg of GlobalMsg
-        | GalleryMsg of GalleryMsg
+        | GalleryMsg of ConsoleMVU.Gallery.GalleryMessages.GalleryMsg
         | GitStatusMsg of GitStatusMsg
         | RaiseMessage of Topic * Message
     let private fixKeyName = CasePipe.SpacifyName >> CasePipe.TitleCase
