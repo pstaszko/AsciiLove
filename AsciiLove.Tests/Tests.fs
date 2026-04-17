@@ -31,7 +31,7 @@ type ``MVU Tests``() =
                 IO.IOActions.SerializeIndented = fun _ -> failwith "Not expected to be called"
                 IO.IOActions.RunGitCommand = fun _ -> failwith "Not expected to be called"
             }
-        let displayConfig : Screens.GitStatusScreen.GitStatusDisplayConfig = 
+        let displayConfig : Screens.GitStatusScreen.GitStatusDisplayConfig =
             {
                 SelectedFileSymbol = ">"
             }

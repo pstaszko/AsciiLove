@@ -404,7 +404,7 @@ module Main =
             {
                 GitStatusDisplayConfig.SelectedFileSymbol = ">>"
             }
-        
+
         let gsd = Screens.GitStatusScreen.getScreenDef io cfg.FeatureFlags.ShowSelectedFiles displayConfig
 
         Program.loop cfg.FeatureFlags.ShowSelectedFiles displayConfig gsd io modelUpdateMessages mqtt.PublishMessage true init
