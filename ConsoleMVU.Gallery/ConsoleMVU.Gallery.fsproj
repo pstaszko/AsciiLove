@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <SixLaborsLicenseKey>$(SixLaborsLicenseKey)</SixLaborsLicenseKey>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
