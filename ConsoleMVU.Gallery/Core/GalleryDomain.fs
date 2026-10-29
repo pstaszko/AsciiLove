@@ -3,7 +3,7 @@ namespace ConsoleMVU.Gallery
 module GalleryDomain =
     open System
     open System.IO
-
+    let (^) a b = a b
     type SupportedConsoleColors =
         | Black
         | DarkBlue
@@ -120,18 +120,28 @@ module GalleryDomain =
             ImageLastWrite = imageLastWrite
         }
 
+    type ColorFolder =
+        {
+            Color: SupportedConsoleColors
+            FolderPath: DirectoryInfo
+        }
+
     let getAllArt () : Art list =
         Directory.GetDirectories(@"C:\Dev\PowerShell\Art")
-        |> Seq.collect
+        |> Seq.choose
             (fun colorFolderPath ->
                 let di = DirectoryInfo colorFolderPath
-                let color =
-                    UnionStuff.fromString<SupportedConsoleColors> di.Name
-                    |> function
-                    | Some c -> c
-                    | None -> failwith $"{di.Name} is not a valid ConsoleColor"
+                UnionStuff.fromString<SupportedConsoleColors> di.Name
+                |> function
+                | Some c -> Some { Color = c; FolderPath = di }
+                | None -> None)
+        |> fun x -> x
+        |> Seq.collect
+            (fun colorFolder ->
+                let di = colorFolder.FolderPath
+                let color = colorFolder.Color
 
-                Directory.GetFiles(colorFolderPath, "*.txt")
+                Directory.GetFiles(di.FullName, "*.txt")
                 |> Seq.map (fun filePath -> pathToArt color filePath))
         |> Seq.toList
 
